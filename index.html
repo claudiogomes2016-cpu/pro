@@ -3,95 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExecutePro Cloud - Final</title>
+    <title>ExecutePro PRO - Dashboard & Edit</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-50 flex items-center justify-center font-bold text-blue-600 italic uppercase tracking-widest">Sincronizando com a Nuvem Google...</div>
+<body class="bg-slate-50 font-sans text-slate-900">
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex items-center justify-center font-black text-blue-600 italic animate-pulse">SINCRONIZANDO DADOS...</div>
 
-    <div class="min-h-screen pb-10">
-        <nav class="bg-slate-900 text-white p-4 shadow-xl border-b-2 border-blue-500">
-            <div class="container mx-auto flex justify-between items-center">
-                <h1 class="text-xl font-black tracking-tighter text-blue-400 italic">EXECUTE PRO <span class="text-white text-[10px] not-italic">CLOUD v3</span></h1>
-                <div class="flex gap-2">
-                    <button onclick="toggleConfig()" class="text-[10px] bg-slate-700 hover:bg-blue-600 px-3 py-2 rounded font-bold uppercase transition">⚙️ Configurações</button>
-                </div>
-            </div>
-        </nav>
-
-        <div class="container mx-auto p-4">
-            <!-- GERENCIADOR DE NOMES E TEAMS -->
-            <div id="config-section" class="hidden mb-8 bg-white p-6 rounded-lg shadow-inner border-2 border-dashed border-blue-300">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black text-blue-900 uppercase italic">Painel de Controle do Sistema</h3>
-                    <button onclick="toggleConfig()" class="text-red-500 font-bold">FECHAR ✕</button>
-                </div>
-
-                <!-- IMPORTAÇÃO RÁPIDA -->
-                <div class="mb-6 p-4 bg-blue-50 rounded border border-blue-100 text-center">
-                    <p class="text-xs font-bold text-blue-800 mb-2 uppercase">Recuperar nomes da lista original?</p>
-                    <button onclick="importarNomesPadrao()" class="bg-blue-600 text-white px-4 py-2 rounded-full text-[10px] font-black hover:bg-blue-800">CADASTRAR LISTA PADRÃO AGORA</button>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase">Adicionar Novo Responsável</p>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="novo-nome" class="flex-1 p-2 border rounded outline-none text-sm uppercase" placeholder="Nome Completo">
-                            <button onclick="adicionarNome()" class="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700 text-xs">ADD</button>
-                        </div>
-                        <div id="lista-nomes-config" class="grid grid-cols-1 gap-1 text-[10px] font-bold max-h-40 overflow-y-auto"></div>
+    <!-- MODAL DE EDIÇÃO -->
+    <div id="modal-edit" class="hidden fixed inset-0 bg-black/60 z-[90] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden border-t-8 border-yellow-500">
+            <div class="p-6">
+                <h3 class="font-black uppercase text-slate-800 mb-4 flex justify-between">Editar Ação <button onclick="fecharModal()" class="text-slate-400 font-normal">✕</button></h3>
+                <form id="form-edit" class="space-y-4">
+                    <input type="hidden" id="edit-id">
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">Título</label><input type="text" id="edit-titulo" class="w-full p-2 border rounded font-bold uppercase text-sm outline-none bg-slate-50"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">Responsável</label><select id="edit-responsavel" class="w-full p-2 border rounded font-bold text-sm outline-none bg-slate-50 uppercase"></select></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[10px] font-black text-slate-400 uppercase">Início</label><input type="date" id="edit-data-inicio" class="w-full p-2 border rounded text-xs outline-none bg-slate-50"></div>
+                        <div><label class="text-[10px] font-black text-slate-400 uppercase">Fim</label><input type="date" id="edit-data-fim" class="w-full p-2 border rounded text-xs outline-none bg-slate-50"></div>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">Link do Microsoft Teams (Webhook)</p>
-                        <input type="text" id="webhook-teams" onchange="salvarWebhook()" class="w-full p-2 border rounded text-[10px] outline-none mb-2" placeholder="Cole aqui o link do Teams...">
-                        <p class="text-[9px] text-gray-400 italic">O sistema usará este link para enviar alertas de atraso.</p>
-                    </div>
-                </div>
+                    <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-lg font-black uppercase text-xs shadow-lg shadow-yellow-200">Salvar Alterações</button>
+                </form>
             </div>
+        </div>
+    </div>
 
-            <!-- DASHBOARD -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 font-black uppercase text-center tracking-tighter">
-                <div class="bg-white p-4 rounded shadow-md border-b-4 border-blue-500"><p class="text-gray-400 text-[10px]">Total</p><h2 id="stat-total" class="text-2xl">0</h2></div>
-                <div class="bg-white p-4 rounded shadow-md border-b-4 border-red-600"><p class="text-red-400 text-[10px]">Crítico/Atraso</p><h2 id="stat-atrasados" class="text-2xl text-red-600">0</h2></div>
-                <div class="bg-white p-4 rounded shadow-md border-b-4 border-yellow-500"><p class="text-yellow-500 text-[10px]">Alerta 5 dias</p><h2 id="stat-proximos" class="text-2xl text-yellow-600">0</h2></div>
-                <div class="bg-white p-4 rounded shadow-md border-b-4 border-green-500"><p class="text-green-500 text-[10px]">Concluídos</p><h2 id="stat-taxa" class="text-2xl text-green-600">0</h2></div>
+    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-40 shadow-xl">
+        <div class="container mx-auto flex justify-between items-center text-xs uppercase font-black tracking-widest">
+            <span class="text-blue-400 italic text-lg">EXECUTE PRO <span class="text-white font-normal">v4</span></span>
+            <div class="flex gap-4">
+                <button onclick="mudarAba('lista')" class="hover:text-blue-400 transition">Planos</button>
+                <button onclick="mudarAba('dashboard')" class="hover:text-blue-400 transition">Dashboard</button>
+                <button onclick="toggleConfig()" class="bg-slate-700 px-3 py-1 rounded">⚙️</button>
             </div>
+        </div>
+    </nav>
 
-            <div class="flex flex-col lg:flex-row gap-8">
+    <div class="container mx-auto p-4">
+        <!-- CONFIGURAÇÕES -->
+        <div id="config-section" class="hidden mb-8 bg-white p-6 rounded-xl shadow-lg border-2 border-dashed border-blue-200">
+            <div class="flex justify-between items-center mb-4"><h3 class="font-black text-blue-900 uppercase italic">Configurações</h3><button onclick="toggleConfig()" class="text-red-500 font-bold">FECHAR</button></div>
+            <button onclick="importarNomesPadrao()" class="mb-4 bg-blue-100 text-blue-700 w-full py-2 rounded text-[10px] font-black">IMPORTAR LISTA ORIGINAL DE RESPONSÁVEIS</button>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div><input type="text" id="novo-nome" class="w-full p-2 border rounded text-sm mb-2 uppercase" placeholder="Novo nome..."><button onclick="adicionarNome()" class="w-full bg-green-600 text-white py-2 rounded font-bold text-xs">ADD RESPONSÁVEL</button><div id="lista-nomes-config" class="mt-2 space-y-1"></div></div>
+                <div><input type="text" id="webhook-teams" onchange="salvarWebhook()" class="w-full p-2 border rounded text-[10px]" placeholder="Webhook Teams..."><p class="text-[9px] text-slate-400 mt-1 italic italic">URL para notificações.</p></div>
+            </div>
+        </div>
+
+        <!-- ABA LISTA -->
+        <div id="aba-lista">
+            <div class="flex flex-col lg:flex-row gap-6">
                 <!-- FORMULÁRIO -->
-                <div class="lg:w-1/3 bg-white p-6 rounded-lg shadow-xl border-t-8 border-blue-600">
-                    <h3 class="font-black mb-6 text-slate-800 text-xs uppercase italic tracking-widest border-b pb-2">Registrar Nova Ação</h3>
+                <div class="lg:w-1/3 bg-white p-6 rounded-xl shadow-lg border-t-8 border-blue-600 h-fit">
+                    <h3 class="font-black mb-6 text-slate-800 text-xs uppercase italic tracking-widest border-b pb-2">Registrar Ação</h3>
                     <form id="form-plano" class="space-y-4">
-                        <input type="text" id="titulo" required class="w-full p-3 border rounded text-sm bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none uppercase font-bold" placeholder="Descrição da Tarefa">
-                        <select id="responsavel" required class="w-full p-3 border rounded text-sm bg-blue-50 font-black text-blue-900 outline-none uppercase cursor-pointer"></select>
+                        <input type="text" id="titulo" required class="w-full p-3 border rounded text-sm bg-slate-50 font-bold uppercase outline-none focus:ring-2 focus:ring-blue-400" placeholder="Descrição da Tarefa">
+                        <select id="responsavel" required class="w-full p-3 border rounded text-sm bg-blue-50 font-black text-blue-900 outline-none uppercase"></select>
                         <div class="grid grid-cols-2 gap-4 text-[10px] font-black text-slate-400">
                             <div>INÍCIO<input type="date" id="data_inicio" required class="w-full p-2 border rounded text-xs text-gray-700 mt-1 outline-none"></div>
                             <div>PRAZO FINAL<input type="date" id="data_conclusao" required class="w-full p-2 border rounded text-xs text-gray-700 mt-1 outline-none"></div>
                         </div>
-                        <select id="status" class="w-full p-3 border rounded text-sm font-black bg-gray-100 outline-none uppercase">
-                            <option>Não iniciado</option><option>Em andamento</option><option>Concluído</option>
-                        </select>
-                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-4 rounded font-black hover:bg-blue-700 shadow-xl active:scale-95 transition uppercase text-xs tracking-widest">SALVAR NA NUVEM</button>
+                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-4 rounded font-black hover:bg-blue-700 shadow-xl active:scale-95 transition uppercase text-xs tracking-widest uppercase italic">Salvar na Nuvem</button>
                     </form>
                 </div>
-
                 <!-- LISTAGEM -->
                 <div class="lg:w-2/3">
-                    <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200">
-                        <div class="bg-slate-800 text-white p-4 text-[10px] font-black flex justify-between uppercase italic tracking-widest">
-                            <span>Monitor de Execução em Tempo Real</span>
-                            <span class="text-blue-400 animate-pulse">Live Cloud Sync</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <tbody id="lista-planos" class="text-sm"></tbody>
-                            </table>
-                        </div>
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+                        <div class="bg-slate-800 text-white p-4 text-[10px] font-black flex justify-between uppercase italic tracking-widest">Monitor de Execução <span id="sync-status" class="text-blue-400 animate-pulse">📡 Cloud Sync</span></div>
+                        <table class="w-full"><tbody id="lista-planos"></tbody></table>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA DASHBOARD (NOVO) -->
+        <div id="aba-dashboard" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-blue-500"><p class="text-[10px] font-black uppercase text-slate-400">Total de Ações</p><h2 id="dash-total" class="text-4xl font-black italic">0</h2></div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-red-500"><p class="text-[10px] font-black uppercase text-slate-400">Atrasos/Críticos</p><h2 id="dash-atrasados" class="text-4xl font-black italic text-red-600">0</h2></div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-yellow-500"><p class="text-[10px] font-black uppercase text-slate-400">Taxa de Execução</p><h2 id="dash-taxa" class="text-4xl font-black italic text-blue-600">0%</h2></div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-green-500"><p class="text-[10px] font-black uppercase text-slate-400">Concluídos</p><h2 id="dash-concluidos" class="text-4xl font-black italic text-green-600">0</h2></div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                    <h3 class="text-xs font-black uppercase mb-6 italic tracking-widest text-slate-400 border-b pb-2">Distribuição de Status</h3>
+                    <div id="chart-status" class="space-y-4"></div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 font-bold uppercase tracking-tighter">
+                    <h3 class="text-xs font-black uppercase mb-6 italic tracking-widest text-slate-400 border-b pb-2">Pendências por Responsável</h3>
+                    <div id="chart-responsavel" class="space-y-2"></div>
                 </div>
             </div>
         </div>
@@ -106,39 +110,32 @@
             messagingSenderId: "862620727559",
             appId: "1:862620727559:web:4515840f5eea40c64f6da2"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // GERENCIAMENTO DE NOMES
+        let dadosGerais = [];
+
+        function mudarAba(aba) {
+            document.getElementById('aba-lista').classList.toggle('hidden', aba !== 'lista');
+            document.getElementById('aba-dashboard').classList.toggle('hidden', aba !== 'dashboard');
+            if(aba === 'dashboard') renderDashboard();
+        }
+
+        function toggleConfig() { document.getElementById('config-section').classList.toggle('hidden'); }
+
         async function adicionarNome() {
             const input = document.getElementById('novo-nome');
-            if (input.value.trim()) {
-                await db.collection("responsaveis").add({ nome: input.value.trim().toUpperCase() });
-                input.value = "";
-            }
+            if (input.value.trim()) { await db.collection("responsaveis").add({ nome: input.value.trim().toUpperCase() }); input.value = ""; }
         }
 
         async function importarNomesPadrao() {
             const lista = ["RAFAEL JANUARIO CUNHA", "RICKSON CARMO", "ROMUALDO AZEVEDO", "LUIS DOMINGOS", "JOSÉ CLAUDIO REIS", "PAULO TEIXEIRA", "DEIVEDE LIMA"];
-            for (let nome of lista) {
-                await db.collection("responsaveis").add({ nome: nome });
-            }
-            alert("Lista padrão importada com sucesso!");
+            for (let nome of lista) await db.collection("responsaveis").add({ nome: nome });
+            alert("Nomes importados!");
         }
 
-        async function excluirNome(id) { if(confirm("Remover responsável?")) await db.collection("responsaveis").doc(id).delete(); }
-        function toggleConfig() { 
-            document.getElementById('config-section').classList.toggle('hidden'); 
-            document.getElementById('webhook-teams').value = localStorage.getItem('teams_url') || '';
-        }
+        async function excluirNome(id) { if(confirm("Excluir?")) await db.collection("responsaveis").doc(id).delete(); }
 
-        function salvarWebhook() {
-            const url = document.getElementById('webhook-teams').value;
-            localStorage.setItem('teams_url', url);
-        }
-
-        // GERENCIAMENTO DE PLANOS
         const form = document.getElementById('form-plano');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -149,67 +146,134 @@
                 responsavel: document.getElementById('responsavel').value,
                 data_inicio: document.getElementById('data_inicio').value,
                 data_conclusao: document.getElementById('data_conclusao').value,
-                status: document.getElementById('status').value,
+                status: "Não iniciado",
                 timestamp: Date.now()
             });
             form.reset(); btn.disabled = false; btn.innerText = "SALVAR NA NUVEM";
         });
 
-        async function deletarPlano(id) { if(confirm("Excluir plano definitivamente?")) await db.collection("planos").doc(id).delete(); }
+        // EDIÇÃO
+        function abrirEdicao(id) {
+            const p = dadosGerais.find(x => x.id === id);
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-titulo').value = p.titulo;
+            document.getElementById('edit-responsavel').value = p.responsavel;
+            document.getElementById('edit-data-inicio').value = p.data_inicio;
+            document.getElementById('edit-data-fim').value = p.data_conclusao;
+            document.getElementById('modal-edit').classList.remove('hidden');
+        }
+
+        function fecharModal() { document.getElementById('modal-edit').classList.add('hidden'); }
+
+        document.getElementById('form-edit').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            await db.collection("planos").doc(id).update({
+                titulo: document.getElementById('edit-titulo').value,
+                responsavel: document.getElementById('edit-responsavel').value,
+                data_inicio: document.getElementById('edit-data-inicio').value,
+                data_conclusao: document.getElementById('edit-data-fim').value
+            });
+            fecharModal();
+        });
+
+        async function deletarPlano(id) { if(confirm("Excluir definitivo?")) await db.collection("planos").doc(id).delete(); }
         async function mudarStatus(id, status) { await db.collection("planos").doc(id).update({ status: status }); }
 
-        // SINCRONIZAÇÃO EM TEMPO REAL
-        db.collection("responsaveis").onSnapshot((snapshot) => {
+        // REAL-TIME LISTENER
+        db.collection("responsaveis").onSnapshot(snap => {
             const select = document.getElementById('responsavel');
-            const listaConfig = document.getElementById('lista-nomes-config');
-            select.innerHTML = '<option value="" disabled selected>Selecionar Responsável...</option>';
-            listaConfig.innerHTML = '';
-            snapshot.forEach(doc => {
-                const n = doc.data();
-                select.innerHTML += `<option value="${n.nome}">${n.nome}</option>`;
-                listaConfig.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-2 rounded border mb-1"><span>${n.nome}</span><button onclick="excluirNome('${doc.id}')" class="text-red-400 font-bold ml-2">✕</button></div>`;
+            const selectEdit = document.getElementById('edit-responsavel');
+            const config = document.getElementById('lista-nomes-config');
+            select.innerHTML = '<option value="" disabled selected>Quem fará?</option>';
+            selectEdit.innerHTML = '';
+            config.innerHTML = '';
+            snap.forEach(doc => {
+                const n = doc.data().nome;
+                select.innerHTML += `<option value="${n}">${n}</option>`;
+                selectEdit.innerHTML += `<option value="${n}">${n}</option>`;
+                config.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-2 border rounded mb-1 text-[10px] font-bold"><span>${n}</span><button onclick="excluirNome('${doc.id}')" class="text-red-500">✕</button></div>`;
             });
         });
 
-        db.collection("planos").onSnapshot((snapshot) => {
+        db.collection("planos").onSnapshot(snap => {
             document.getElementById('loading-overlay').classList.add('hidden');
-            const listaPlanos = document.getElementById('lista-planos');
-            listaPlanos.innerHTML = '';
-            let sT=0, sA=0, sP=0, sC=0;
-            const dados = [];
-            snapshot.forEach(doc => dados.push({id: doc.id, ...doc.data()}));
-            dados.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
-                sT++;
+            const lista = document.getElementById('lista-planos');
+            lista.innerHTML = '';
+            dadosGerais = [];
+            snap.forEach(doc => dadosGerais.push({id: doc.id, ...doc.data()}));
+            
+            dadosGerais.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
                 const diff = moment(p.data_conclusao).startOf('day').diff(moment().startOf('day'), 'days');
                 let cor = "bg-green-500";
-                if (p.status === 'Concluído') { cor = "bg-blue-500"; sC++; }
-                else if (diff < 0) { cor = "bg-red-600 animate-pulse"; sA++; }
-                else if (diff <= 2) { cor = "bg-red-500 shadow-[0_0_10px_red]"; sA++; }
-                else if (diff <= 5) { cor = "bg-yellow-500"; sP++; }
+                if (p.status === 'Concluído') cor = "bg-blue-500";
+                else if (diff < 0) cor = "bg-red-600 animate-pulse";
+                else if (diff <= 2) cor = "bg-red-500 shadow-[0_0_10px_red]";
+                else if (diff <= 5) cor = "bg-yellow-500";
 
-                listaPlanos.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50 transition">
+                lista.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50 transition group">
                         <td class="p-4 w-4"><div class="h-4 w-4 rounded-full border border-black/10 ${cor}"></div></td>
-                        <td class="p-3">
-                            <div class="text-[9px] font-black text-blue-600 italic tracking-tighter uppercase">${p.responsavel}</div>
-                            <div class="text-[11px] font-black text-slate-800 uppercase leading-tight">${p.titulo}</div>
+                        <td class="p-4">
+                            <div class="text-[9px] font-black text-blue-600 tracking-tighter uppercase italic">${p.responsavel}</div>
+                            <div class="text-[12px] font-black text-slate-800 uppercase leading-none mt-1">${p.titulo}</div>
                         </td>
-                        <td class="p-3 text-[10px] font-black font-mono text-gray-500">${moment(p.data_conclusao).format('DD/MM')}</td>
-                        <td class="p-3 text-right flex items-center justify-end gap-2">
-                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[9px] border rounded bg-white p-1 font-black shadow-sm outline-none uppercase">
+                        <td class="p-4 text-[10px] font-black font-mono text-slate-400">${moment(p.data_conclusao).format('DD/MM')}</td>
+                        <td class="p-4 text-right flex items-center justify-end gap-2 mt-2 opacity-100">
+                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[9px] border rounded bg-white p-1 font-black outline-none uppercase cursor-pointer">
                                 <option ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
                                 <option ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
                                 <option ${p.status==='Concluído'?'selected':''}>Concluído</option>
                             </select>
-                            <button onclick="deletarPlano('${p.id}')" class="text-gray-300 hover:text-red-500 font-bold ml-1">✕</button>
+                            <button onclick="abrirEdicao('${p.id}')" class="text-blue-500 hover:scale-110 transition p-1">✏️</button>
+                            <button onclick="deletarPlano('${p.id}')" class="text-slate-300 hover:text-red-500 transition p-1">✕</button>
                         </td>
                     </tr>`;
             });
-            document.getElementById('stat-total').innerText = sT; 
-            document.getElementById('stat-atrasados').innerText = sA; 
-            document.getElementById('stat-proximos').innerText = sP; 
-            document.getElementById('stat-taxa').innerText = sC;
         });
+
+        function renderDashboard() {
+            const total = dadosGerais.length;
+            const concluídos = dadosGerais.filter(p => p.status === 'Concluído').length;
+            const atrasados = dadosGerais.filter(p => p.status !== 'Concluído' && moment(p.data_conclusao).diff(moment().startOf('day'), 'days') < 0).length;
+            
+            document.getElementById('dash-total').innerText = total;
+            document.getElementById('dash-concluidos').innerText = concluídos;
+            document.getElementById('dash-atrasados').innerText = atrasados;
+            document.getElementById('dash-taxa').innerText = total > 0 ? Math.round((concluídos / total) * 100) + "%" : "0%";
+
+            // Gráfico de Barras Status
+            const stats = { 'Não iniciado': 0, 'Em andamento': 0, 'Concluído': 0 };
+            dadosGerais.forEach(p => stats[p.status]++);
+            
+            const chartStatus = document.getElementById('chart-status');
+            chartStatus.innerHTML = '';
+            for (let s in stats) {
+                const perc = total > 0 ? (stats[s] / total * 100) : 0;
+                chartStatus.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>${s}</span><span>${stats[s]}</span></div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div class="bg-blue-600 h-full" style="width: ${perc}%"></div>
+                        </div>
+                    </div>`;
+            }
+
+            // Pendências por Responsável
+            const respStats = {};
+            dadosGerais.filter(p => p.status !== 'Concluído').forEach(p => {
+                respStats[p.responsavel] = (respStats[p.responsavel] || 0) + 1;
+            });
+            const chartResp = document.getElementById('chart-responsavel');
+            chartResp.innerHTML = '';
+            Object.entries(respStats).sort((a,b) => b[1] - a[1]).forEach(([nome, qtd]) => {
+                chartResp.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border-l-4 border-slate-900">
+                        <span class="text-[10px] font-black">${nome}</span>
+                        <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-black italic">${qtd} Pendentes</span>
+                    </div>`;
+            });
+        }
     </script>
 </body>
 </html>
