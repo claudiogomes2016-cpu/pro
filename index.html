@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExecutePro - Gestão Completa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="min-h-screen pb-10">
+        <nav class="bg-slate-900 text-white p-4 shadow-xl">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold tracking-tight text-blue-400">EXECUTE PRO</h1>
+                <button onclick="toggleConfig()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition">⚙️ GERENCIAR RESPONSÁVEIS</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-6">
+            
+            <!-- GERENCIADOR DE NOMES (HIDDEN POR PADRÃO) -->
+            <div id="config-section" class="hidden mb-8 bg-white p-6 rounded-lg shadow-inner border-2 border-dashed border-blue-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-blue-800">Gerenciar Base de Responsáveis</h3>
+                    <button onclick="toggleConfig()" class="text-gray-400 hover:text-gray-600">Fechar ✕</button>
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="novo-nome" class="flex-1 p-2 border rounded outline-none" placeholder="Digite o nome completo...">
+                    <button onclick="adicionarNome()" class="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700">+ ADICIONAR</button>
+                </div>
+                <div id="lista-nomes-config" class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <!-- Nomes aparecerão aqui para excluir -->
+                </div>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-4 rounded shadow border-b-4 border-blue-500">
+                    <p class="text-gray-400 text-[10px] uppercase font-bold">Total</p>
+                    <h2 id="stat-total" class="text-2xl font-bold">0</h2>
+                </div>
+                <div class="bg-white p-4 rounded shadow border-b-4 border-red-500">
+                    <p class="text-gray-400 text-[10px] uppercase font-bold">Atrasados</p>
+                    <h2 id="stat-atrasados" class="text-2xl font-bold text-red-600">0</h2>
+                </div>
+                <div class="bg-white p-4 rounded shadow border-b-4 border-yellow-500">
+                    <p class="text-gray-400 text-[10px] uppercase font-bold">No Alerta</p>
+                    <h2 id="stat-proximos" class="text-2xl font-bold text-yellow-600">0</h2>
+                </div>
+                <div class="bg-white p-4 rounded shadow border-b-4 border-green-500">
+                    <p class="text-gray-400 text-[10px] uppercase font-bold">Concluídos</p>
+                    <h2 id="stat-taxa" class="text-2xl font-bold text-green-600">0</h2>
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- FORMULÁRIO -->
+                <div class="lg:w-1/3 bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="font-bold mb-4 text-gray-700 border-b pb-2">NOVA AÇÃO</h3>
+                    <form id="form-plano" class="space-y-4">
+                        <input type="text" id="titulo" required class="w-full p-2 border rounded text-sm" placeholder="Título do plano">
+                        
+                        <select id="responsavel" required class="w-full p-2 border rounded text-sm bg-gray-50">
+                            <!-- POPULADO VIA JS -->
+                        </select>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="text-[10px] text-gray-400 font-bold uppercase">Início
+                                <input type="date" id="data_inicio" required class="w-full p-2 border rounded text-xs text-gray-700">
+                            </div>
+                            <div class="text-[10px] text-gray-400 font-bold uppercase">Fim
+                                <input type="date" id="data_conclusao" required class="w-full p-2 border rounded text-xs text-gray-700">
+                            </div>
+                        </div>
+                        
+                        <select id="status" class="w-full p-2 border rounded text-sm">
+                            <option>Não iniciado</option>
+                            <option>Em andamento</option>
+                            <option>Concluído</option>
+                        </select>
+
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-md font-bold hover:bg-blue-700 shadow-lg">GRAVAR PLANO</button>
+                    </form>
+                </div>
+
+                <!-- LISTAGEM -->
+                <div class="lg:w-2/3">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-800 text-white text-[10px] uppercase">
+                                <tr>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Responsável / Título</th>
+                                    <th class="p-3">Prazo</th>
+                                    <th class="p-3 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-planos" class="text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LISTA INICIAL DE NOMES
+        const nomesPadrao = ["RAFAEL JANUARIO CUNHA", "RICKSON CARMO", "ROMUALDO AZEVEDO", "LUIS DOMINGOS", "JOSÉ CLAUDIO REIS", "PAULO TEIXEIRA", "DEIVEDE LIMA"];
+        
+        let nomes = JSON.parse(localStorage.getItem('exPro_nomes')) || nomesPadrao;
+        let planos = JSON.parse(localStorage.getItem('exPro_planos')) || [];
+
+        // FUNÇÕES DE NOMES
+        function toggleConfig() {
+            document.getElementById('config-section').classList.toggle('hidden');
+        }
+
+        function adicionarNome() {
+            const input = document.getElementById('novo-nome');
+            if (input.value.trim() !== "") {
+                nomes.push(input.value.trim().toUpperCase());
+                input.value = "";
+                salvarNomes();
+                renderizarTudo();
+            }
+        }
+
+        function excluirNome(index) {
+            if(confirm("Remover este responsável da lista?")) {
+                nomes.splice(index, 1);
+                salvarNomes();
+                renderizarTudo();
+            }
+        }
+
+        function salvarNomes() {
+            localStorage.setItem('exPro_nomes', JSON.stringify(nomes));
+        }
+
+        // FUNÇÕES DE PLANOS
+        const form = document.getElementById('form-plano');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            planos.push({
+                id: Date.now(),
+                titulo: document.getElementById('titulo').value,
+                responsavel: document.getElementById('responsavel').value,
+                data_inicio: document.getElementById('data_inicio').value,
+                data_conclusao: document.getElementById('data_conclusao').value,
+                status: document.getElementById('status').value
+            });
+            localStorage.setItem('exPro_planos', JSON.stringify(planos));
+            form.reset();
+            renderizarTudo();
+        });
+
+        function deletarPlano(id) {
+            planos = planos.filter(p => p.id !== id);
+            localStorage.setItem('exPro_planos', JSON.stringify(planos));
+            renderizarTudo();
+        }
+
+        function mudarStatus(id, status) {
+            const i = planos.findIndex(p => p.id === id);
+            planos[i].status = status;
+            localStorage.setItem('exPro_planos', JSON.stringify(planos));
+            renderizarTudo();
+        }
+
+        function renderizarTudo() {
+            // 1. Atualiza Dropdown e Lista de Configuração
+            const select = document.getElementById('responsavel');
+            const listaConfig = document.getElementById('lista-nomes-config');
+            
+            select.innerHTML = '<option value="" disabled selected>Selecionar Responsável...</option>';
+            listaConfig.innerHTML = '';
+
+            nomes.sort().forEach((nome, i) => {
+                select.innerHTML += `<option value="${nome}">${nome}</option>`;
+                listaConfig.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded border">
+                        <span>${nome}</span>
+                        <button onclick="excluirNome(${i})" class="text-red-500 font-bold ml-2">✕</button>
+                    </div>`;
+            });
+
+            // 2. Atualiza Tabela de Planos
+            const listaPlanos = document.getElementById('lista-planos');
+            listaPlanos.innerHTML = '';
+            let sTotal = 0, sAtraso = 0, sProx = 0, sConcluido = 0;
+
+            planos.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
+                sTotal++;
+                const hoje = moment().startOf('day');
+                const fim = moment(p.data_conclusao).startOf('day');
+                const diff = fim.diff(hoje, 'days');
+
+                let cor = "bg-green-500";
+                if (p.status === 'Concluído') { cor = "bg-blue-500"; sConcluido++; }
+                else if (diff < 0) { cor = "bg-red-600 animate-pulse"; sAtraso++; }
+                else if (diff <= 2) { cor = "bg-red-500"; sAtraso++; }
+                else if (diff <= 5) { cor = "bg-yellow-500"; sProx++; }
+
+                listaPlanos.innerHTML += `
+                    <tr class="border-b hover:bg-blue-50">
+                        <td class="p-3"><div class="h-3 w-3 rounded-full ${cor}"></div></td>
+                        <td class="p-3 uppercase">
+                            <div class="text-[10px] font-bold text-blue-600">${p.responsavel}</div>
+                            <div class="text-xs font-semibold">${p.titulo}</div>
+                        </td>
+                        <td class="p-3 text-xs font-mono">${moment(p.data_conclusao).format('DD/MM/YY')}</td>
+                        <td class="p-3 text-center">
+                            <select onchange="mudarStatus(${p.id}, this.value)" class="text-[10px] border rounded bg-white p-1">
+                                <option ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
+                                <option ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
+                                <option ${p.status==='Concluído'?'selected':''}>Concluído</option>
+                            </select>
+                            <button onclick="deletarPlano(${p.id})" class="text-gray-300 hover:text-red-500 ml-2">✕</button>
+                        </td>
+                    </tr>`;
+            });
+
+            document.getElementById('stat-total').innerText = sTotal;
+            document.getElementById('stat-atrasados').innerText = sAtraso;
+            document.getElementById('stat-proximos').innerText = sProx;
+            document.getElementById('stat-taxa').innerText = sConcluido;
+        }
+
+        renderizarTudo();
+    </script>
+</body>
+</html>
