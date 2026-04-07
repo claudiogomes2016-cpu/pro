@@ -3,101 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExecutePro - Gestão Completa</title>
+    <title>ExecutePro Cloud - Sincronizado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-50 flex items-center justify-center font-bold text-blue-600 italic">CONECTANDO À NUVEM...</div>
 
     <div class="min-h-screen pb-10">
         <nav class="bg-slate-900 text-white p-4 shadow-xl">
             <div class="container mx-auto flex justify-between items-center">
-                <h1 class="text-xl font-bold tracking-tight text-blue-400">EXECUTE PRO</h1>
-                <button onclick="toggleConfig()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition">⚙️ GERENCIAR RESPONSÁVEIS</button>
+                <h1 class="text-xl font-bold tracking-tight text-blue-400">EXECUTE PRO <span class="text-[10px] text-white">CLOUD</span></h1>
+                <button onclick="toggleConfig()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition font-bold uppercase">⚙️ Responsáveis</button>
             </div>
         </nav>
 
-        <div class="container mx-auto p-6">
-            
-            <!-- GERENCIADOR DE NOMES (HIDDEN POR PADRÃO) -->
+        <div class="container mx-auto p-4">
+            <!-- GERENCIADOR DE NOMES -->
             <div id="config-section" class="hidden mb-8 bg-white p-6 rounded-lg shadow-inner border-2 border-dashed border-blue-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-blue-800">Gerenciar Base de Responsáveis</h3>
-                    <button onclick="toggleConfig()" class="text-gray-400 hover:text-gray-600">Fechar ✕</button>
+                <div class="flex justify-between items-center mb-4 text-blue-800">
+                    <h3 class="font-bold">Base de Responsáveis (Cloud)</h3>
+                    <button onclick="toggleConfig()" class="text-gray-400 hover:text-gray-600 font-bold">FECHAR ✕</button>
                 </div>
                 <div class="flex gap-2 mb-4">
-                    <input type="text" id="novo-nome" class="flex-1 p-2 border rounded outline-none" placeholder="Digite o nome completo...">
-                    <button onclick="adicionarNome()" class="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700">+ ADICIONAR</button>
+                    <input type="text" id="novo-nome" class="flex-1 p-2 border rounded outline-none" placeholder="Digite o nome...">
+                    <button onclick="adicionarNome()" class="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700 uppercase text-xs">Adicionar</button>
                 </div>
-                <div id="lista-nomes-config" class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                    <!-- Nomes aparecerão aqui para excluir -->
-                </div>
+                <div id="lista-nomes-config" class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-bold"></div>
             </div>
 
             <!-- DASHBOARD -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-white p-4 rounded shadow border-b-4 border-blue-500">
-                    <p class="text-gray-400 text-[10px] uppercase font-bold">Total</p>
-                    <h2 id="stat-total" class="text-2xl font-bold">0</h2>
-                </div>
-                <div class="bg-white p-4 rounded shadow border-b-4 border-red-500">
-                    <p class="text-gray-400 text-[10px] uppercase font-bold">Atrasados</p>
-                    <h2 id="stat-atrasados" class="text-2xl font-bold text-red-600">0</h2>
-                </div>
-                <div class="bg-white p-4 rounded shadow border-b-4 border-yellow-500">
-                    <p class="text-gray-400 text-[10px] uppercase font-bold">No Alerta</p>
-                    <h2 id="stat-proximos" class="text-2xl font-bold text-yellow-600">0</h2>
-                </div>
-                <div class="bg-white p-4 rounded shadow border-b-4 border-green-500">
-                    <p class="text-gray-400 text-[10px] uppercase font-bold">Concluídos</p>
-                    <h2 id="stat-taxa" class="text-2xl font-bold text-green-600">0</h2>
-                </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center uppercase tracking-tighter font-bold">
+                <div class="bg-white p-4 rounded shadow border-b-4 border-blue-500"><p class="text-gray-400 text-[10px]">Total</p><h2 id="stat-total" class="text-2xl">0</h2></div>
+                <div class="bg-white p-4 rounded shadow border-b-4 border-red-500"><p class="text-gray-400 text-[10px]">Atrasados</p><h2 id="stat-atrasados" class="text-2xl text-red-600">0</h2></div>
+                <div class="bg-white p-4 rounded shadow border-b-4 border-yellow-500"><p class="text-gray-400 text-[10px]">Alerta</p><h2 id="stat-proximos" class="text-2xl text-yellow-600">0</h2></div>
+                <div class="bg-white p-4 rounded shadow border-b-4 border-green-500"><p class="text-gray-400 text-[10px]">OK</p><h2 id="stat-taxa" class="text-2xl text-green-600">0</h2></div>
             </div>
 
             <div class="flex flex-col lg:flex-row gap-8">
                 <!-- FORMULÁRIO -->
-                <div class="lg:w-1/3 bg-white p-6 rounded-lg shadow-lg">
-                    <h3 class="font-bold mb-4 text-gray-700 border-b pb-2">NOVA AÇÃO</h3>
+                <div class="lg:w-1/3 bg-white p-6 rounded-lg shadow-lg border-t-4 border-blue-600">
+                    <h3 class="font-bold mb-4 text-gray-700 text-xs uppercase border-b pb-2">Nova Ação</h3>
                     <form id="form-plano" class="space-y-4">
-                        <input type="text" id="titulo" required class="w-full p-2 border rounded text-sm" placeholder="Título do plano">
-                        
-                        <select id="responsavel" required class="w-full p-2 border rounded text-sm bg-gray-50">
-                            <!-- POPULADO VIA JS -->
-                        </select>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="text-[10px] text-gray-400 font-bold uppercase">Início
-                                <input type="date" id="data_inicio" required class="w-full p-2 border rounded text-xs text-gray-700">
-                            </div>
-                            <div class="text-[10px] text-gray-400 font-bold uppercase">Fim
-                                <input type="date" id="data_conclusao" required class="w-full p-2 border rounded text-xs text-gray-700">
-                            </div>
+                        <input type="text" id="titulo" required class="w-full p-2 border rounded text-sm bg-gray-50 outline-none" placeholder="Título da tarefa">
+                        <select id="responsavel" required class="w-full p-2 border rounded text-sm bg-blue-50 font-bold text-blue-800 outline-none"></select>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-gray-400">
+                            <div>INÍCIO<input type="date" id="data_inicio" required class="w-full p-2 border rounded text-xs text-gray-700 mt-1 outline-none"></div>
+                            <div>PRAZO FINAL<input type="date" id="data_conclusao" required class="w-full p-2 border rounded text-xs text-gray-700 mt-1 outline-none"></div>
                         </div>
-                        
-                        <select id="status" class="w-full p-2 border rounded text-sm">
-                            <option>Não iniciado</option>
-                            <option>Em andamento</option>
-                            <option>Concluído</option>
+                        <select id="status" class="w-full p-2 border rounded text-sm font-semibold bg-gray-50 outline-none">
+                            <option>Não iniciado</option><option>Em andamento</option><option>Concluído</option>
                         </select>
-
-                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-md font-bold hover:bg-blue-700 shadow-lg">GRAVAR PLANO</button>
+                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-3 rounded font-black hover:bg-blue-700 shadow-lg active:scale-95 transition uppercase text-xs">Salvar na Nuvem</button>
                     </form>
                 </div>
 
                 <!-- LISTAGEM -->
                 <div class="lg:w-2/3">
-                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-800 text-white text-[10px] uppercase">
-                                <tr>
-                                    <th class="p-3">Status</th>
-                                    <th class="p-3">Responsável / Título</th>
-                                    <th class="p-3">Prazo</th>
-                                    <th class="p-3 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lista-planos" class="text-sm"></tbody>
-                        </table>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+                        <div class="bg-slate-800 text-white p-3 text-[10px] font-bold flex justify-between uppercase">
+                            <span>Sincronização em Tempo Real</span>
+                            <span class="text-blue-400 tracking-widest">Ativo 📡</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <tbody id="lista-planos" class="text-sm"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -105,129 +79,82 @@
     </div>
 
     <script>
-        // LISTA INICIAL DE NOMES
-        const nomesPadrao = ["RAFAEL JANUARIO CUNHA", "RICKSON CARMO", "ROMUALDO AZEVEDO", "LUIS DOMINGOS", "JOSÉ CLAUDIO REIS", "PAULO TEIXEIRA", "DEIVEDE LIMA"];
-        
-        let nomes = JSON.parse(localStorage.getItem('exPro_nomes')) || nomesPadrao;
-        let planos = JSON.parse(localStorage.getItem('exPro_planos')) || [];
+        // CONFIGURAÇÃO DO SEU FIREBASE (INFORMAÇÕES DA SUA IMAGEM)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFka2_7e9ktqZ3omV8lHBBuzd1Wd88emA",
+            authDomain: "executepro-ff108.firebaseapp.com",
+            projectId: "executepro-ff108",
+            storageBucket: "executepro-ff108.firebasestorage.app",
+            messagingSenderId: "862620727559",
+            appId: "1:862620727559:web:4515840f5eea40c64f6da2"
+        };
 
-        // FUNÇÕES DE NOMES
-        function toggleConfig() {
-            document.getElementById('config-section').classList.toggle('hidden');
-        }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        function adicionarNome() {
+        // FUNÇÕES DO SISTEMA
+        async function adicionarNome() {
             const input = document.getElementById('novo-nome');
-            if (input.value.trim() !== "") {
-                nomes.push(input.value.trim().toUpperCase());
+            if (input.value.trim()) {
+                await db.collection("responsaveis").add({ nome: input.value.trim().toUpperCase() });
                 input.value = "";
-                salvarNomes();
-                renderizarTudo();
             }
         }
+        async function excluirNome(id) { if(confirm("Excluir responsável?")) await db.collection("responsaveis").doc(id).delete(); }
+        function toggleConfig() { document.getElementById('config-section').classList.toggle('hidden'); }
 
-        function excluirNome(index) {
-            if(confirm("Remover este responsável da lista?")) {
-                nomes.splice(index, 1);
-                salvarNomes();
-                renderizarTudo();
-            }
-        }
-
-        function salvarNomes() {
-            localStorage.setItem('exPro_nomes', JSON.stringify(nomes));
-        }
-
-        // FUNÇÕES DE PLANOS
         const form = document.getElementById('form-plano');
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            planos.push({
-                id: Date.now(),
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true; btn.innerText = "GRAVANDO...";
+            await db.collection("planos").add({
                 titulo: document.getElementById('titulo').value,
                 responsavel: document.getElementById('responsavel').value,
                 data_inicio: document.getElementById('data_inicio').value,
                 data_conclusao: document.getElementById('data_conclusao').value,
-                status: document.getElementById('status').value
+                status: document.getElementById('status').value,
+                timestamp: Date.now()
             });
-            localStorage.setItem('exPro_planos', JSON.stringify(planos));
-            form.reset();
-            renderizarTudo();
+            form.reset(); btn.disabled = false; btn.innerText = "Salvar na Nuvem";
         });
 
-        function deletarPlano(id) {
-            planos = planos.filter(p => p.id !== id);
-            localStorage.setItem('exPro_planos', JSON.stringify(planos));
-            renderizarTudo();
-        }
+        async function deletarPlano(id) { if(confirm("Excluir plano definitivamente?")) await db.collection("planos").doc(id).delete(); }
+        async function mudarStatus(id, status) { await db.collection("planos").doc(id).update({ status: status }); }
 
-        function mudarStatus(id, status) {
-            const i = planos.findIndex(p => p.id === id);
-            planos[i].status = status;
-            localStorage.setItem('exPro_planos', JSON.stringify(planos));
-            renderizarTudo();
-        }
-
-        function renderizarTudo() {
-            // 1. Atualiza Dropdown e Lista de Configuração
+        // SINCRONIZAÇÃO EM TEMPO REAL
+        db.collection("responsaveis").onSnapshot((snapshot) => {
             const select = document.getElementById('responsavel');
             const listaConfig = document.getElementById('lista-nomes-config');
-            
-            select.innerHTML = '<option value="" disabled selected>Selecionar Responsável...</option>';
+            select.innerHTML = '<option value="" disabled selected>Selecionar responsável...</option>';
             listaConfig.innerHTML = '';
-
-            nomes.sort().forEach((nome, i) => {
-                select.innerHTML += `<option value="${nome}">${nome}</option>`;
-                listaConfig.innerHTML += `
-                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded border">
-                        <span>${nome}</span>
-                        <button onclick="excluirNome(${i})" class="text-red-500 font-bold ml-2">✕</button>
-                    </div>`;
+            snapshot.forEach(doc => {
+                const n = doc.data();
+                select.innerHTML += `<option value="${n.nome}">${n.nome}</option>`;
+                listaConfig.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-2 rounded border"><span>${n.nome}</span><button onclick="excluirNome('${doc.id}')" class="text-red-400 font-bold ml-2">✕</button></div>`;
             });
+        });
 
-            // 2. Atualiza Tabela de Planos
+        db.collection("planos").onSnapshot((snapshot) => {
+            document.getElementById('loading-overlay').classList.add('hidden');
             const listaPlanos = document.getElementById('lista-planos');
             listaPlanos.innerHTML = '';
-            let sTotal = 0, sAtraso = 0, sProx = 0, sConcluido = 0;
-
-            planos.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
-                sTotal++;
-                const hoje = moment().startOf('day');
-                const fim = moment(p.data_conclusao).startOf('day');
-                const diff = fim.diff(hoje, 'days');
-
+            let sT=0, sA=0, sP=0, sC=0;
+            const dados = [];
+            snapshot.forEach(doc => dados.push({id: doc.id, ...doc.data()}));
+            dados.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
+                sT++;
+                const diff = moment(p.data_conclusao).startOf('day').diff(moment().startOf('day'), 'days');
                 let cor = "bg-green-500";
-                if (p.status === 'Concluído') { cor = "bg-blue-500"; sConcluido++; }
-                else if (diff < 0) { cor = "bg-red-600 animate-pulse"; sAtraso++; }
-                else if (diff <= 2) { cor = "bg-red-500"; sAtraso++; }
-                else if (diff <= 5) { cor = "bg-yellow-500"; sProx++; }
+                if (p.status === 'Concluído') { cor = "bg-blue-500"; sC++; }
+                else if (diff < 0) { cor = "bg-red-600 animate-pulse"; sA++; }
+                else if (diff <= 2) { cor = "bg-red-500"; sA++; }
+                else if (diff <= 5) { cor = "bg-yellow-500 text-white font-black text-center text-[8px]"; sP++; }
 
-                listaPlanos.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50">
-                        <td class="p-3"><div class="h-3 w-3 rounded-full ${cor}"></div></td>
-                        <td class="p-3 uppercase">
-                            <div class="text-[10px] font-bold text-blue-600">${p.responsavel}</div>
-                            <div class="text-xs font-semibold">${p.titulo}</div>
-                        </td>
-                        <td class="p-3 text-xs font-mono">${moment(p.data_conclusao).format('DD/MM/YY')}</td>
-                        <td class="p-3 text-center">
-                            <select onchange="mudarStatus(${p.id}, this.value)" class="text-[10px] border rounded bg-white p-1">
-                                <option ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
-                                <option ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
-                                <option ${p.status==='Concluído'?'selected':''}>Concluído</option>
-                            </select>
-                            <button onclick="deletarPlano(${p.id})" class="text-gray-300 hover:text-red-500 ml-2">✕</button>
-                        </td>
-                    </tr>`;
+                listaPlanos.innerHTML += `<tr class="border-b hover:bg-blue-50"><td class="p-4 w-4"><div class="h-4 w-4 rounded-full border border-black/10 ${cor}"></div></td><td class="p-3"><div class="text-[9px] font-black text-blue-600">${p.responsavel}</div><div class="text-xs font-bold text-slate-700 uppercase">${p.titulo}</div></td><td class="p-3 text-[10px] font-mono font-bold text-gray-500">${moment(p.data_conclusao).format('DD/MM')}</td><td class="p-3 text-right flex items-center justify-end gap-2"><select onchange="mudarStatus('${p.id}', this.value)" class="text-[9px] border rounded bg-white p-1 font-bold shadow-sm"><option ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option><option ${p.status==='Em andamento'?'selected':''}>Em andamento</option><option ${p.status==='Concluído'?'selected':''}>Concluído</option></select><button onclick="deletarPlano('${p.id}')" class="text-gray-300 hover:text-red-500">✕</button></td></tr>`;
             });
-
-            document.getElementById('stat-total').innerText = sTotal;
-            document.getElementById('stat-atrasados').innerText = sAtraso;
-            document.getElementById('stat-proximos').innerText = sProx;
-            document.getElementById('stat-taxa').innerText = sConcluido;
-        }
-
-        renderizarTudo();
+            document.getElementById('stat-total').innerText = sT; document.getElementById('stat-atrasados').innerText = sA; document.getElementById('stat-proximos').innerText = sP; document.getElementById('stat-taxa').innerText = sC;
+        });
     </script>
 </body>
 </html>
