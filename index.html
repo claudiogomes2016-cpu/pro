@@ -3,99 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExecutePro PRO - Dashboard & Edit</title>
+    <title>ExecutePro v7 - Versão Equilibrada</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        .column-bar { transition: height 0.6s ease-in-out; min-width: 70px; }
+        input, select, textarea { font-size: 13px !important; }
+        .critical-glow { box-shadow: 0 0 15px rgba(220, 38, 38, 0.3); }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900">
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex items-center justify-center font-black text-blue-600 italic animate-pulse">SINCRONIZANDO DADOS...</div>
+<body class="bg-slate-100 font-sans text-slate-900 leading-tight">
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center font-black text-white text-xl italic uppercase tracking-widest">Sincronizando...</div>
 
     <!-- MODAL DE EDIÇÃO -->
-    <div id="modal-edit" class="hidden fixed inset-0 bg-black/60 z-[90] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden border-t-8 border-yellow-500">
+    <div id="modal-edit" class="hidden fixed inset-0 bg-slate-900/70 z-[90] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl border-t-8 border-yellow-500">
             <div class="p-6">
-                <h3 class="font-black uppercase text-slate-800 mb-4 flex justify-between">Editar Ação <button onclick="fecharModal()" class="text-slate-400 font-normal">✕</button></h3>
-                <form id="form-edit" class="space-y-4">
+                <h3 class="font-black uppercase text-lg text-slate-800 mb-4 flex justify-between">Editar Ação <button onclick="fecharModal()" class="text-slate-400 hover:text-red-500 text-2xl font-normal">✕</button></h3>
+                <form id="form-edit" class="space-y-4 font-bold uppercase">
                     <input type="hidden" id="edit-id">
-                    <div><label class="text-[10px] font-black text-slate-400 uppercase">Título</label><input type="text" id="edit-titulo" class="w-full p-2 border rounded font-bold uppercase text-sm outline-none bg-slate-50"></div>
-                    <div><label class="text-[10px] font-black text-slate-400 uppercase">Responsável</label><select id="edit-responsavel" class="w-full p-2 border rounded font-bold text-sm outline-none bg-slate-50 uppercase"></select></div>
+                    <div><label class="text-[10px] text-slate-400 ml-1">Descrição</label><input type="text" id="edit-titulo" class="w-full p-2 border rounded-lg bg-slate-50 outline-none focus:border-blue-500"></div>
+                    <div><label class="text-[10px] text-slate-400 ml-1">Responsável</label><select id="edit-responsavel" class="w-full p-2 border rounded-lg bg-slate-50 outline-none focus:border-blue-500"></select></div>
                     <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[10px] font-black text-slate-400 uppercase">Início</label><input type="date" id="edit-data-inicio" class="w-full p-2 border rounded text-xs outline-none bg-slate-50"></div>
-                        <div><label class="text-[10px] font-black text-slate-400 uppercase">Fim</label><input type="date" id="edit-data-fim" class="w-full p-2 border rounded text-xs outline-none bg-slate-50"></div>
+                        <div><label class="text-[10px] text-slate-400 ml-1">Início</label><input type="date" id="edit-data-inicio" class="w-full p-2 border rounded-lg outline-none text-xs"></div>
+                        <div><label class="text-[10px] text-slate-400 ml-1">Prazo</label><input type="date" id="edit-data-fim" class="w-full p-2 border rounded-lg outline-none text-xs"></div>
                     </div>
-                    <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-lg font-black uppercase text-xs shadow-lg shadow-yellow-200">Salvar Alterações</button>
+                    <div><label class="text-[10px] text-slate-400 ml-1">Pendência</label><input type="text" id="edit-obs" class="w-full p-2 border rounded-lg bg-slate-50 outline-none border-red-200 text-red-600"></div>
+                    <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-lg font-black uppercase text-sm shadow-lg">Salvar Alterações</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-40 shadow-xl">
-        <div class="container mx-auto flex justify-between items-center text-xs uppercase font-black tracking-widest">
-            <span class="text-blue-400 italic text-lg">EXECUTE PRO <span class="text-white font-normal">v4</span></span>
-            <div class="flex gap-4">
-                <button onclick="mudarAba('lista')" class="hover:text-blue-400 transition">Planos</button>
-                <button onclick="mudarAba('dashboard')" class="hover:text-blue-400 transition">Dashboard</button>
-                <button onclick="toggleConfig()" class="bg-slate-700 px-3 py-1 rounded">⚙️</button>
+    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-40 shadow-xl border-b-2 border-blue-600">
+        <div class="container mx-auto flex justify-between items-center font-black uppercase tracking-tighter italic">
+            <span class="text-blue-400 text-lg uppercase">Execute Pro <span class="text-white font-light text-[10px] not-italic ml-1 tracking-widest">v7 Balanced</span></span>
+            <div class="flex gap-6 not-italic text-[11px] items-center">
+                <button onclick="mudarAba('lista')" class="hover:text-blue-400 transition">📝 Lista</button>
+                <button onclick="mudarAba('dashboard')" class="hover:text-blue-400 transition">📊 Dashboard</button>
+                <button onclick="toggleConfig()" class="bg-slate-700 p-1.5 rounded-md">⚙️</button>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto p-4">
-        <!-- CONFIGURAÇÕES -->
-        <div id="config-section" class="hidden mb-8 bg-white p-6 rounded-xl shadow-lg border-2 border-dashed border-blue-200">
-            <div class="flex justify-between items-center mb-4"><h3 class="font-black text-blue-900 uppercase italic">Configurações</h3><button onclick="toggleConfig()" class="text-red-500 font-bold">FECHAR</button></div>
-            <button onclick="importarNomesPadrao()" class="mb-4 bg-blue-100 text-blue-700 w-full py-2 rounded text-[10px] font-black">IMPORTAR LISTA ORIGINAL DE RESPONSÁVEIS</button>
-            <div class="grid md:grid-cols-2 gap-4">
-                <div><input type="text" id="novo-nome" class="w-full p-2 border rounded text-sm mb-2 uppercase" placeholder="Novo nome..."><button onclick="adicionarNome()" class="w-full bg-green-600 text-white py-2 rounded font-bold text-xs">ADD RESPONSÁVEL</button><div id="lista-nomes-config" class="mt-2 space-y-1"></div></div>
-                <div><input type="text" id="webhook-teams" onchange="salvarWebhook()" class="w-full p-2 border rounded text-[10px]" placeholder="Webhook Teams..."><p class="text-[9px] text-slate-400 mt-1 italic italic">URL para notificações.</p></div>
-            </div>
-        </div>
-
         <!-- ABA LISTA -->
         <div id="aba-lista">
-            <div class="flex flex-col lg:flex-row gap-6">
+            <div class="flex flex-col lg:flex-row gap-6 font-bold">
                 <!-- FORMULÁRIO -->
-                <div class="lg:w-1/3 bg-white p-6 rounded-xl shadow-lg border-t-8 border-blue-600 h-fit">
-                    <h3 class="font-black mb-6 text-slate-800 text-xs uppercase italic tracking-widest border-b pb-2">Registrar Ação</h3>
-                    <form id="form-plano" class="space-y-4">
-                        <input type="text" id="titulo" required class="w-full p-3 border rounded text-sm bg-slate-50 font-bold uppercase outline-none focus:ring-2 focus:ring-blue-400" placeholder="Descrição da Tarefa">
-                        <select id="responsavel" required class="w-full p-3 border rounded text-sm bg-blue-50 font-black text-blue-900 outline-none uppercase"></select>
-                        <div class="grid grid-cols-2 gap-4 text-[10px] font-black text-slate-400">
-                            <div>INÍCIO<input type="date" id="data_inicio" required class="w-full p-2 border rounded text-xs text-gray-700 mt-1 outline-none"></div>
-                            <div>PRAZO FINAL<input type="date" id="data_conclusao" required class="w-full p-2 border rounded text-xs text-gray-700 mt-1 outline-none"></div>
+                <div class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border-t-8 border-blue-600 h-fit">
+                    <h3 class="font-black mb-6 text-slate-800 text-[11px] uppercase italic tracking-widest border-b pb-2">Nova Ação</h3>
+                    <form id="form-plano" class="space-y-4 uppercase">
+                        <input type="text" id="titulo" required class="w-full p-3 border rounded-xl text-xs bg-slate-50 font-bold outline-none focus:border-blue-500" placeholder="Título da Tarefa">
+                        <select id="responsavel" required class="w-full p-3 border rounded-xl text-xs bg-blue-50 font-black text-blue-900 outline-none uppercase cursor-pointer"></select>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] font-black text-slate-400 uppercase">
+                            <div>Início<input type="date" id="data_inicio" required class="w-full p-2 border rounded-lg text-[11px] text-gray-700 mt-1 outline-none"></div>
+                            <div>Prazo Final<input type="date" id="data_conclusao" required class="w-full p-2 border rounded-lg text-[11px] text-gray-700 mt-1 outline-none"></div>
                         </div>
-                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-4 rounded font-black hover:bg-blue-700 shadow-xl active:scale-95 transition uppercase text-xs tracking-widest uppercase italic">Salvar na Nuvem</button>
+                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700 shadow-md transition uppercase text-xs tracking-widest italic">Gravar na Nuvem</button>
                     </form>
                 </div>
                 <!-- LISTAGEM -->
                 <div class="lg:w-2/3">
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
-                        <div class="bg-slate-800 text-white p-4 text-[10px] font-black flex justify-between uppercase italic tracking-widest">Monitor de Execução <span id="sync-status" class="text-blue-400 animate-pulse">📡 Cloud Sync</span></div>
-                        <table class="w-full"><tbody id="lista-planos"></tbody></table>
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
+                        <div class="bg-slate-800 text-white p-3 text-[10px] font-black flex justify-between uppercase italic tracking-widest items-center">
+                            <span>Monitor Corporativo</span>
+                            <span class="text-blue-400 flex items-center gap-1 uppercase tracking-tighter">Live Cloud Sync</span>
+                        </div>
+                        <div id="lista-planos" class="divide-y divide-slate-100"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ABA DASHBOARD (NOVO) -->
+        <!-- ABA DASHBOARD BI -->
         <div id="aba-dashboard" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-blue-500"><p class="text-[10px] font-black uppercase text-slate-400">Total de Ações</p><h2 id="dash-total" class="text-4xl font-black italic">0</h2></div>
-                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-red-500"><p class="text-[10px] font-black uppercase text-slate-400">Atrasos/Críticos</p><h2 id="dash-atrasados" class="text-4xl font-black italic text-red-600">0</h2></div>
-                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-yellow-500"><p class="text-[10px] font-black uppercase text-slate-400">Taxa de Execução</p><h2 id="dash-taxa" class="text-4xl font-black italic text-blue-600">0%</h2></div>
-                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 border-green-500"><p class="text-[10px] font-black uppercase text-slate-400">Concluídos</p><h2 id="dash-concluidos" class="text-4xl font-black italic text-green-600">0</h2></div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 font-black uppercase text-center">
+                <div class="bg-white p-4 rounded-2xl shadow shadow-slate-200 border-b-4 border-blue-500"><p class="text-[10px] text-slate-400">Total</p><h2 id="dash-total" class="text-2xl italic">0</h2></div>
+                <div class="bg-white p-4 rounded-2xl shadow shadow-slate-200 border-b-4 border-red-600"><p class="text-[10px] text-red-500">Atrasos</p><h2 id="dash-atrasados" class="text-2xl italic text-red-600">0</h2></div>
+                <div class="bg-white p-4 rounded-2xl shadow shadow-slate-200 border-b-4 border-yellow-500"><p class="text-[10px] text-yellow-600">Em Curso</p><h2 id="dash-andamento" class="text-2xl italic text-yellow-500">0</h2></div>
+                <div class="bg-white p-4 rounded-2xl shadow shadow-slate-200 border-b-4 border-green-500"><p class="text-[10px] text-green-600">Concluído</p><h2 id="dash-concluidos" class="text-2xl italic text-green-600">0</h2></div>
             </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
-                    <h3 class="text-xs font-black uppercase mb-6 italic tracking-widest text-slate-400 border-b pb-2">Distribuição de Status</h3>
-                    <div id="chart-status" class="space-y-4"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow border border-slate-200">
+                    <h3 class="text-[10px] font-black uppercase mb-8 italic tracking-widest text-slate-400 border-b pb-2">Distribuição Status (BI)</h3>
+                    <div id="chart-container" class="flex justify-around items-end h-64 gap-4 relative"></div>
+                    <div class="w-full border-t border-slate-100 mt-2"></div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 font-bold uppercase tracking-tighter">
-                    <h3 class="text-xs font-black uppercase mb-6 italic tracking-widest text-slate-400 border-b pb-2">Pendências por Responsável</h3>
-                    <div id="chart-responsavel" class="space-y-2"></div>
+
+                <div class="space-y-4">
+                    <div class="bg-blue-600 p-6 rounded-2xl shadow text-center text-white">
+                        <p class="text-[10px] font-black uppercase opacity-80 mb-1">Taxa de Sucesso</p>
+                        <h2 id="dash-taxa" class="text-5xl font-black italic">0%</h2>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow border border-slate-200">
+                        <h3 class="text-[10px] font-black uppercase mb-4 italic tracking-widest text-slate-400 border-b pb-2">Ranking Pendências</h3>
+                        <div id="chart-responsavel" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-3 bg-white p-6 rounded-2xl shadow-lg border border-red-100">
+                    <h3 class="text-[10px] font-black uppercase mb-4 italic text-red-600 border-b pb-2">Ações Prioritárias em Atraso</h3>
+                    <div id="lista-critica" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIGS -->
+        <div id="config-section" class="hidden fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
+            <div class="bg-white p-8 rounded-2xl max-w-lg w-full">
+                <button onclick="toggleConfig()" class="float-right text-red-500 font-black">✕</button>
+                <h3 class="font-black uppercase mb-4 italic text-sm">Gestão de Base</h3>
+                <button onclick="importarNomesPadrao()" class="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-black mb-6 uppercase text-[10px]">Importar Lista Padrão</button>
+                <div class="space-y-4">
+                    <div class="flex gap-2 text-xs">
+                        <input type="text" id="novo-nome" class="flex-1 p-2 border rounded-lg uppercase" placeholder="Nome Completo">
+                        <button onclick="adicionarNome()" class="bg-green-600 text-white px-6 rounded-lg font-black uppercase text-[10px]">ADD</button>
+                    </div>
+                    <div id="lista-nomes-config" class="h-48 overflow-y-auto border rounded-lg p-2 bg-slate-50 text-[10px] uppercase font-bold"></div>
                 </div>
             </div>
         </div>
@@ -131,28 +159,34 @@
         async function importarNomesPadrao() {
             const lista = ["RAFAEL JANUARIO CUNHA", "RICKSON CARMO", "ROMUALDO AZEVEDO", "LUIS DOMINGOS", "JOSÉ CLAUDIO REIS", "PAULO TEIXEIRA", "DEIVEDE LIMA"];
             for (let nome of lista) await db.collection("responsaveis").add({ nome: nome });
-            alert("Nomes importados!");
+            alert("Base atualizada!");
         }
 
-        async function excluirNome(id) { if(confirm("Excluir?")) await db.collection("responsaveis").doc(id).delete(); }
+        async function excluirNome(id) { if(confirm("Remover?")) await db.collection("responsaveis").doc(id).delete(); }
 
         const form = document.getElementById('form-plano');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = "GRAVANDO...";
+            btn.disabled = true;
             await db.collection("planos").add({
-                titulo: document.getElementById('titulo').value,
+                titulo: document.getElementById('titulo').value.toUpperCase(),
                 responsavel: document.getElementById('responsavel').value,
                 data_inicio: document.getElementById('data_inicio').value,
                 data_conclusao: document.getElementById('data_conclusao').value,
                 status: "Não iniciado",
+                observacao: "",
                 timestamp: Date.now()
             });
-            form.reset(); btn.disabled = false; btn.innerText = "SALVAR NA NUVEM";
+            form.reset(); btn.disabled = false;
         });
 
-        // EDIÇÃO
+        async function mudarObservacao(id, texto) {
+            await db.collection("planos").doc(id).update({ observacao: texto.toUpperCase() });
+        }
+
+        async function mudarStatus(id, status) { await db.collection("planos").doc(id).update({ status: status }); }
+
         function abrirEdicao(id) {
             const p = dadosGerais.find(x => x.id === id);
             document.getElementById('edit-id').value = id;
@@ -160,6 +194,7 @@
             document.getElementById('edit-responsavel').value = p.responsavel;
             document.getElementById('edit-data-inicio').value = p.data_inicio;
             document.getElementById('edit-data-fim').value = p.data_conclusao;
+            document.getElementById('edit-obs').value = p.observacao || "";
             document.getElementById('modal-edit').classList.remove('hidden');
         }
 
@@ -169,30 +204,29 @@
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
             await db.collection("planos").doc(id).update({
-                titulo: document.getElementById('edit-titulo').value,
+                titulo: document.getElementById('edit-titulo').value.toUpperCase(),
                 responsavel: document.getElementById('edit-responsavel').value,
                 data_inicio: document.getElementById('edit-data-inicio').value,
-                data_conclusao: document.getElementById('edit-data-fim').value
+                data_conclusao: document.getElementById('edit-data-fim').value,
+                observacao: document.getElementById('edit-obs').value.toUpperCase()
             });
             fecharModal();
         });
 
-        async function deletarPlano(id) { if(confirm("Excluir definitivo?")) await db.collection("planos").doc(id).delete(); }
-        async function mudarStatus(id, status) { await db.collection("planos").doc(id).update({ status: status }); }
+        async function deletarPlano(id) { if(confirm("Excluir definitivamente?")) await db.collection("planos").doc(id).delete(); }
 
-        // REAL-TIME LISTENER
         db.collection("responsaveis").onSnapshot(snap => {
             const select = document.getElementById('responsavel');
             const selectEdit = document.getElementById('edit-responsavel');
             const config = document.getElementById('lista-nomes-config');
-            select.innerHTML = '<option value="" disabled selected>Quem fará?</option>';
+            select.innerHTML = '<option value="" disabled selected>ESCOLHER...</option>';
             selectEdit.innerHTML = '';
             config.innerHTML = '';
             snap.forEach(doc => {
                 const n = doc.data().nome;
                 select.innerHTML += `<option value="${n}">${n}</option>`;
                 selectEdit.innerHTML += `<option value="${n}">${n}</option>`;
-                config.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-2 border rounded mb-1 text-[10px] font-bold"><span>${n}</span><button onclick="excluirNome('${doc.id}')" class="text-red-500">✕</button></div>`;
+                config.innerHTML += `<div class="flex justify-between items-center bg-white p-2 border mb-1 rounded-md"><span>${n}</span><button onclick="excluirNome('${doc.id}')" class="text-red-500">✕</button></div>`;
             });
         });
 
@@ -206,73 +240,116 @@
             dadosGerais.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
                 const diff = moment(p.data_conclusao).startOf('day').diff(moment().startOf('day'), 'days');
                 let cor = "bg-green-500";
-                if (p.status === 'Concluído') cor = "bg-blue-500";
-                else if (diff < 0) cor = "bg-red-600 animate-pulse";
-                else if (diff <= 2) cor = "bg-red-500 shadow-[0_0_10px_red]";
-                else if (diff <= 5) cor = "bg-yellow-500";
+                if (p.status === 'Concluído') cor = "bg-green-600";
+                else if (p.status === 'Em andamento') cor = "bg-yellow-400";
+                else {
+                    cor = "bg-blue-500";
+                    if (diff < 0) cor = "bg-red-600 animate-pulse critical-glow";
+                }
 
                 lista.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition group">
-                        <td class="p-4 w-4"><div class="h-4 w-4 rounded-full border border-black/10 ${cor}"></div></td>
-                        <td class="p-4">
-                            <div class="text-[9px] font-black text-blue-600 tracking-tighter uppercase italic">${p.responsavel}</div>
-                            <div class="text-[12px] font-black text-slate-800 uppercase leading-none mt-1">${p.titulo}</div>
-                        </td>
-                        <td class="p-4 text-[10px] font-black font-mono text-slate-400">${moment(p.data_conclusao).format('DD/MM')}</td>
-                        <td class="p-4 text-right flex items-center justify-end gap-2 mt-2 opacity-100">
-                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[9px] border rounded bg-white p-1 font-black outline-none uppercase cursor-pointer">
+                    <div class="p-4 bg-white flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition hover:bg-slate-50 border-l-[8px] ${p.status === 'Concluído' ? 'border-green-500' : (diff < 0 ? 'border-red-600' : 'border-slate-300')}">
+                        <div class="flex items-start gap-4 flex-1">
+                            <div class="h-6 w-6 min-w-[1.5rem] rounded-full border-2 border-white shadow-md ${cor} mt-1"></div>
+                            <div class="flex-1">
+                                <div class="text-[10px] font-black text-blue-600 uppercase italic mb-1">${p.responsavel} <span class="text-slate-400 font-mono ml-2 not-italic font-bold">VENCE: ${moment(p.data_conclusao).format('DD/MM/YY')}</span></div>
+                                <div class="text-[14px] font-black text-slate-800 uppercase leading-tight mb-2 tracking-tighter">${p.titulo}</div>
+                                <textarea 
+                                    onblur="mudarObservacao('${p.id}', this.value)" 
+                                    class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-black text-red-600 outline-none focus:bg-white focus:border-red-400 transition min-h-[40px] uppercase shadow-inner" 
+                                    placeholder="PENDÊNCIAS / BLOQUEIOS...">${p.observacao || ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 min-w-[220px] bg-slate-50 p-2 rounded-xl">
+                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[10px] border rounded-lg bg-white p-2 font-black outline-none uppercase cursor-pointer flex-1">
                                 <option ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
                                 <option ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
                                 <option ${p.status==='Concluído'?'selected':''}>Concluído</option>
                             </select>
-                            <button onclick="abrirEdicao('${p.id}')" class="text-blue-500 hover:scale-110 transition p-1">✏️</button>
-                            <button onclick="deletarPlano('${p.id}')" class="text-slate-300 hover:text-red-500 transition p-1">✕</button>
-                        </td>
-                    </tr>`;
+                            <button onclick="abrirEdicao('${p.id}')" class="text-blue-600 hover:scale-110 transition text-lg px-1">✏️</button>
+                            <button onclick="deletarPlano('${p.id}')" class="text-slate-300 hover:text-red-500 transition font-black text-base px-1">✕</button>
+                        </div>
+                    </div>`;
             });
+            if(!document.getElementById('aba-dashboard').classList.contains('hidden')) renderDashboard();
         });
 
         function renderDashboard() {
             const total = dadosGerais.length;
-            const concluídos = dadosGerais.filter(p => p.status === 'Concluído').length;
+            const concluidos = dadosGerais.filter(p => p.status === 'Concluído').length;
+            const andamento = dadosGerais.filter(p => p.status === 'Em andamento').length;
             const atrasados = dadosGerais.filter(p => p.status !== 'Concluído' && moment(p.data_conclusao).diff(moment().startOf('day'), 'days') < 0).length;
             
             document.getElementById('dash-total').innerText = total;
-            document.getElementById('dash-concluidos').innerText = concluídos;
+            document.getElementById('dash-concluidos').innerText = concluidos;
+            document.getElementById('dash-andamento').innerText = andamento;
             document.getElementById('dash-atrasados').innerText = atrasados;
-            document.getElementById('dash-taxa').innerText = total > 0 ? Math.round((concluídos / total) * 100) + "%" : "0%";
+            document.getElementById('dash-taxa').innerText = total > 0 ? Math.round((concluidos / total) * 100) + "%" : "0%";
 
-            // Gráfico de Barras Status
-            const stats = { 'Não iniciado': 0, 'Em andamento': 0, 'Concluído': 0 };
-            dadosGerais.forEach(p => stats[p.status]++);
-            
-            const chartStatus = document.getElementById('chart-status');
-            chartStatus.innerHTML = '';
-            for (let s in stats) {
-                const perc = total > 0 ? (stats[s] / total * 100) : 0;
-                chartStatus.innerHTML += `
-                    <div>
-                        <div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>${s}</span><span>${stats[s]}</span></div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-600 h-full" style="width: ${perc}%"></div>
+            const chartCont = document.getElementById('chart-container');
+            chartCont.innerHTML = '';
+
+            const config = [
+                { key: 'Não iniciado', label: 'PENDENTES', color: 'bg-blue-500' },
+                { key: 'Em andamento', label: 'EM CURSO', color: 'bg-yellow-400' },
+                { key: 'Concluído', label: 'FINALIZADOS', color: 'bg-green-500' }
+            ];
+
+            config.forEach(cfg => {
+                const qtd = dadosGerais.filter(p => p.status === cfg.key).length;
+                const alturaPercent = total > 0 ? (qtd / total * 100) : 0;
+                const alturaPixels = Math.max((alturaPercent * 2), 15);
+                
+                chartCont.innerHTML += `
+                    <div class="flex flex-col items-center flex-1 z-10 group">
+                        <div class="flex flex-col items-center mb-2">
+                            <span class="text-2xl font-black text-slate-800 leading-none">${qtd}</span>
+                            <span class="text-[10px] font-bold text-slate-400">${Math.round(alturaPercent)}%</span>
                         </div>
+                        <div class="column-bar w-16 md:w-24 ${cfg.color} rounded-t-xl relative shadow-md" style="height: ${alturaPixels}px"></div>
+                        <span class="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">${cfg.label}</span>
                     </div>`;
-            }
+            });
 
-            // Pendências por Responsável
             const respStats = {};
             dadosGerais.filter(p => p.status !== 'Concluído').forEach(p => {
                 respStats[p.responsavel] = (respStats[p.responsavel] || 0) + 1;
             });
             const chartResp = document.getElementById('chart-responsavel');
             chartResp.innerHTML = '';
-            Object.entries(respStats).sort((a,b) => b[1] - a[1]).forEach(([nome, qtd]) => {
+            Object.entries(respStats).sort((a,b) => b[1] - a[1]).slice(0, 5).forEach(([nome, qtd]) => {
                 chartResp.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border-l-4 border-slate-900">
-                        <span class="text-[10px] font-black">${nome}</span>
-                        <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-black italic">${qtd} Pendentes</span>
+                    <div class="flex justify-between items-center bg-white p-3 rounded-xl border-l-4 border-slate-900 shadow-sm transition hover:scale-105">
+                        <span class="text-[10px] font-black uppercase leading-tight max-w-[140px] italic">${nome}</span>
+                        <span class="bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black italic shadow-md">${qtd} AÇÕES</span>
                     </div>`;
             });
+
+            const listaCritica = document.getElementById('lista-critica');
+            listaCritica.innerHTML = '';
+            const criticas = dadosGerais
+                .filter(p => p.status !== 'Concluído' && moment(p.data_conclusao).diff(moment().startOf('day'), 'days') < 0)
+                .sort((a, b) => new Date(a.data_conclusao) - new Date(b.data_conclusao))
+                .slice(0, 3);
+
+            if(criticas.length === 0) {
+                listaCritica.innerHTML = '<p class="text-green-500 font-black col-span-3 p-4 text-xs text-center uppercase">Tudo em dia!</p>';
+            } else {
+                criticas.forEach(p => {
+                    const dias = Math.abs(moment(p.data_conclusao).diff(moment().startOf('day'), 'days'));
+                    listaCritica.innerHTML += `
+                        <div class="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                            <div class="flex-1 overflow-hidden">
+                                <p class="text-[9px] font-black text-red-600 uppercase mb-1 italic truncate">${p.responsavel}</p>
+                                <p class="text-[12px] font-black uppercase text-slate-800 leading-tight truncate">${p.titulo}</p>
+                            </div>
+                            <div class="text-right ml-2 min-w-[50px]">
+                                <p class="text-[8px] font-bold text-red-400 uppercase">Atraso</p>
+                                <p class="text-xl font-black text-red-600 italic tracking-tighter">${dias}D</p>
+                            </div>
+                        </div>`;
+                });
+            }
         }
     </script>
 </body>
