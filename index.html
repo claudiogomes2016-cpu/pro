@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExecutePro v9.1 - Colaboração Total</title>
+    <title>ExecutePro v9.2 - Filtro por Responsável</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -15,23 +15,23 @@
         .aba-ativa { border-bottom: 3px solid #3b82f6; color: #3b82f6; font-weight: 900; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-900 leading-tight">
-    <div id="loading-overlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center font-black text-white text-xl uppercase tracking-widest text-center px-4">Conectando ao Banco Cloud...</div>
+<body class="bg-slate-100 font-sans text-slate-900 leading-tight uppercase">
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center font-black text-white text-xl uppercase tracking-widest text-center px-4 font-black">Sincronizando Banco de Dados...</div>
 
-    <!-- MODAL DE EDIÇÃO (SÓ GESTOR) -->
+    <!-- MODAL DE EDIÇÃO -->
     <div id="modal-edit" class="hidden fixed inset-0 bg-slate-900/70 z-[90] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl border-t-8 border-yellow-500 text-sm">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl border-t-8 border-yellow-500 text-sm font-black uppercase">
             <div class="p-6">
-                <h3 class="font-black uppercase text-lg text-slate-800 mb-4 flex justify-between tracking-tighter italic">Editar Ação do Plano <button onclick="fecharModal()" class="text-slate-400 hover:text-red-500 text-2xl font-normal">✕</button></h3>
-                <form id="form-edit" class="space-y-4 font-black uppercase tracking-tighter">
+                <h3 class="font-black mb-4 flex justify-between tracking-tighter italic">Editar Ação do Plano <button onclick="fecharModal()" class="text-slate-400 hover:text-red-500 text-2xl font-normal">✕</button></h3>
+                <form id="form-edit" class="space-y-4 font-black uppercase">
                     <input type="hidden" id="edit-id">
-                    <div><label class="text-[10px] text-slate-400 ml-1">Descrição</label><input type="text" id="edit-titulo" class="w-full p-2 border rounded-lg bg-slate-50 outline-none uppercase"></div>
-                    <div><label class="text-[10px] text-slate-400 ml-1">Responsável</label><select id="edit-responsavel" class="w-full p-2 border rounded-lg bg-slate-50 outline-none uppercase"></select></div>
+                    <div><label class="text-[10px] text-slate-400 ml-1">Descrição</label><input type="text" id="edit-titulo" class="w-full p-2 border rounded-lg bg-slate-50 outline-none uppercase font-black"></div>
+                    <div><label class="text-[10px] text-slate-400 ml-1">Responsável</label><select id="edit-responsavel" class="w-full p-2 border rounded-lg bg-slate-50 outline-none uppercase font-black"></select></div>
                     <div class="grid grid-cols-2 gap-2 font-black">
-                        <div><label class="text-[10px] text-slate-400 ml-1 font-black">Início</label><input type="date" id="edit-data-inicio" class="w-full p-2 border rounded-lg outline-none text-xs font-black uppercase"></div>
-                        <div><label class="text-[10px] text-slate-400 ml-1 font-black">Prazo</label><input type="date" id="edit-data-fim" class="w-full p-2 border rounded-lg outline-none text-xs font-black uppercase"></div>
+                        <div><label class="text-[10px] text-slate-400 ml-1">Início</label><input type="date" id="edit-data-inicio" class="w-full p-2 border rounded-lg outline-none text-xs font-black uppercase"></div>
+                        <div><label class="text-[10px] text-slate-400 ml-1">Prazo</label><input type="date" id="edit-data-fim" class="w-full p-2 border rounded-lg outline-none text-xs font-black uppercase"></div>
                     </div>
-                    <div><label class="text-[10px] text-slate-400 ml-1 font-black">Pendência</label><input type="text" id="edit-obs" class="w-full p-2 border rounded-lg bg-slate-50 outline-none border-red-200 text-red-600"></div>
+                    <div><label class="text-[10px] text-slate-400 ml-1">Pendência</label><input type="text" id="edit-obs" class="w-full p-2 border rounded-lg bg-slate-50 outline-none border-red-200 text-red-600 font-black"></div>
                     <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-lg font-black uppercase text-sm shadow-lg tracking-widest">Atualizar Ação</button>
                 </form>
             </div>
@@ -40,77 +40,87 @@
 
     <nav class="bg-slate-900 text-white p-4 sticky top-0 z-40 shadow-xl border-b-2 border-blue-500 font-black uppercase tracking-tighter">
         <div class="container mx-auto flex justify-between items-center">
-            <span class="text-blue-400 text-lg uppercase tracking-widest">Execute Pro <span class="text-white font-light text-[10px] ml-1 tracking-tighter">Master v9.1</span></span>
+            <span class="text-blue-400 text-lg uppercase tracking-widest">Execute Pro <span class="text-white font-light text-[10px] ml-1 tracking-tighter uppercase">Master v9.2</span></span>
             <div class="flex gap-6 text-[11px] items-center">
-                <button id="btn-lock" onclick="verificarSenha()" class="bg-red-600 px-3 py-1.5 rounded-md flex items-center gap-1 shadow-inner hover:scale-105 transition">🔒 MODO LEITURA</button>
-                <button onclick="mudarAba('lista')" id="tab-ativos" class="aba-ativa pb-1 transition">📝 Ativos</button>
-                <button onclick="mudarAba('concluidos')" id="tab-concluidos" class="pb-1 transition">✅ Concluidos</button>
-                <button onclick="mudarAba('dashboard')" id="tab-dash" class="pb-1 transition">📊 Dashboard</button>
-                <button onclick="abrirConfig()" class="bg-slate-700 p-1.5 rounded-md">⚙️</button>
+                <button id="btn-lock" onclick="verificarSenha()" class="bg-red-600 px-3 py-1.5 rounded-md flex items-center gap-1 shadow-inner hover:scale-105 transition font-black">🔒 MODO LEITURA</button>
+                <button onclick="mudarAba('lista')" id="tab-ativos" class="aba-ativa pb-1 transition font-black">📝 Ativos</button>
+                <button onclick="mudarAba('concluidos')" id="tab-concluidos" class="pb-1 transition font-black">✅ Concluidos</button>
+                <button onclick="mudarAba('dashboard')" id="tab-dash" class="pb-1 transition font-black">📊 Dashboard</button>
+                <button onclick="abrirConfig()" class="bg-slate-700 p-1.5 rounded-md font-black">⚙️</button>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto p-4 uppercase">
+    <div class="container mx-auto p-4 uppercase font-black">
         <div id="aba-lista">
-            <div class="flex flex-col lg:flex-row gap-6 font-black uppercase">
-                <!-- FORMULÁRIO (BOX AMARELO - LIBERADO) -->
-                <div id="box-form" class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border-t-8 border-blue-600 h-fit">
-                    <h3 class="font-black mb-6 text-slate-800 text-[11px] uppercase tracking-widest border-b pb-2">Novo Plano de Ação</h3>
-                    <form id="form-plano" class="space-y-4 font-black uppercase">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- FORMULÁRIO -->
+                <div id="box-form" class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border-t-8 border-blue-600 h-fit font-black uppercase">
+                    <h3 class="font-black mb-6 text-slate-800 text-[11px] uppercase tracking-widest border-b pb-2 italic font-black">Novo Plano de Ação</h3>
+                    <form id="form-plano" class="space-y-4 font-black">
                         <input type="text" id="titulo" required class="w-full p-3 border rounded-xl text-xs bg-slate-50 font-black outline-none" placeholder="Descrição da Tarefa">
-                        <select id="responsavel" required class="w-full p-3 border rounded-xl text-xs bg-blue-50 font-black text-blue-900 outline-none cursor-pointer"></select>
-                        <div class="grid grid-cols-2 gap-2 text-[10px] font-black text-slate-400">
+                        <select id="responsavel" required class="w-full p-3 border rounded-xl text-xs bg-blue-50 font-black text-blue-900 outline-none cursor-pointer uppercase font-black"></select>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] font-black text-slate-400 uppercase">
                             <div>Data Início<input type="date" id="data_inicio" required class="w-full p-2 border rounded-lg text-[11px] text-gray-700 mt-1 outline-none font-black uppercase"></div>
                             <div>Prazo Final<input type="date" id="data_conclusao" required class="w-full p-2 border rounded-lg text-[11px] text-gray-700 mt-1 outline-none font-black uppercase"></div>
                         </div>
-                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700 shadow-md transition text-xs tracking-widest">Gravar na Nuvem</button>
+                        <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black hover:bg-blue-700 shadow-md transition text-xs tracking-widest uppercase italic font-black">Gravar na Nuvem</button>
                     </form>
                 </div>
-                <!-- LISTAGEM (BOX AZUL - DROPDOWN LIBERADO / LÁPIS RESTRITO) -->
+
+                <!-- LISTAGEM COM FILTRO POR NOME -->
                 <div class="lg:w-2/3">
+                    <!-- BARRA DE FILTRO (NOVO) -->
+                    <div class="mb-4 bg-white p-3 rounded-xl shadow border border-slate-200 flex flex-col md:flex-row items-center gap-4">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtrar por Responsável:</span>
+                        <select id="filtro-pessoa" onchange="renderLista()" class="flex-1 p-2 border-2 border-blue-100 rounded-lg text-xs font-black bg-blue-50 text-blue-900 outline-none uppercase cursor-pointer">
+                            <option value="TODOS">MOSTRAR TODOS OS NOMES</option>
+                        </select>
+                        <button onclick="limparFiltro()" class="text-[9px] bg-slate-200 px-3 py-2 rounded font-black hover:bg-slate-300 transition">LIMPAR</button>
+                    </div>
+
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
                         <div class="bg-slate-800 text-white p-3 text-[10px] font-black flex justify-between uppercase tracking-widest items-center">
                             <span id="txt-aba">Monitoramento de Execução</span>
-                            <span class="text-blue-400 flex items-center gap-1 font-black underline">Live Sync</span>
+                            <span class="text-blue-400 flex items-center gap-1 font-black underline italic">Live Sync Cloud</span>
                         </div>
-                        <div id="lista-planos" class="divide-y divide-slate-100 font-black uppercase"></div>
+                        <div id="lista-planos" class="divide-y divide-slate-100 font-black uppercase tracking-tighter"></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ABA DASHBOARD -->
-        <div id="aba-dashboard" class="hidden font-black uppercase">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-center">
-                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-blue-500 text-slate-400 text-[10px]">TOTAL<h2 id="dash-total" class="text-2xl text-slate-800">0</h2></div>
-                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-red-600 text-red-500 text-[10px]">ATRASADOS<h2 id="dash-atrasados" class="text-2xl">0</h2></div>
-                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-yellow-500 text-yellow-600 text-[10px]">EM CURSO<h2 id="dash-andamento" class="text-2xl">0</h2></div>
-                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-green-500 text-green-600 text-[10px]">CONCLUÍDOS<h2 id="dash-concluidos" class="text-2xl">0</h2></div>
+        <div id="aba-dashboard" class="hidden font-black uppercase tracking-tighter">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-center font-black">
+                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-blue-500 text-slate-400 text-[10px] font-black">TOTAL<h2 id="dash-total" class="text-2xl text-slate-800 font-black">0</h2></div>
+                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-red-600 text-red-500 text-[10px] font-black">ATRASADOS<h2 id="dash-atrasados" class="text-2xl font-black">0</h2></div>
+                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-yellow-500 text-yellow-600 text-[10px] font-black">EM CURSO<h2 id="dash-andamento" class="text-2xl font-black">0</h2></div>
+                <div class="bg-white p-4 rounded-2xl shadow border-b-4 border-green-500 text-green-600 text-[10px] font-black">CONCLUÍDOS<h2 id="dash-concluidos" class="text-2xl font-black">0</h2></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow border border-slate-200 h-80 relative flex flex-col items-center justify-end">
-                    <div id="chart-container" class="flex justify-around items-end h-full w-full gap-4 relative font-black uppercase"></div>
+                <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow border border-slate-200 h-80 relative flex flex-col items-center justify-end font-black">
+                    <div id="chart-container" class="flex justify-around items-end h-full w-full gap-4 relative font-black"></div>
                 </div>
                 <div class="space-y-4">
-                    <div class="bg-blue-600 p-6 rounded-2xl shadow text-center text-white"><p class="text-[10px] font-black uppercase opacity-80 mb-1">Taxa Geral</p><h2 id="dash-taxa" class="text-5xl font-black italic">0%</h2></div>
-                    <div class="bg-white p-6 rounded-2xl shadow border border-slate-200"><h3 class="text-[10px] font-black uppercase mb-4 tracking-widest text-slate-400 border-b pb-2 italic">Ranking Pendências</h3><div id="chart-responsavel" class="space-y-2"></div></div>
+                    <div class="bg-blue-600 p-6 rounded-2xl shadow text-center text-white font-black"><p class="text-[10px] font-black uppercase opacity-80 mb-1">Taxa Geral</p><h2 id="dash-taxa" class="text-5xl font-black">0%</h2></div>
+                    <div class="bg-white p-6 rounded-2xl shadow border border-slate-200 font-black"><h3 class="text-[10px] font-black uppercase mb-4 tracking-widest text-slate-400 border-b pb-2 italic">Ranking Pendências</h3><div id="chart-responsavel" class="space-y-2 font-black"></div></div>
                 </div>
             </div>
         </div>
 
         <!-- CONFIGS -->
-        <div id="config-section" class="hidden fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 font-black uppercase">
-            <div class="bg-white p-8 rounded-2xl max-w-lg w-full shadow-2xl">
-                <button onclick="fecharConfig()" class="float-right text-red-500 text-2xl">✕</button>
+        <div id="config-section" class="hidden fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 font-black uppercase tracking-tighter">
+            <div class="bg-white p-8 rounded-2xl max-w-lg w-full font-black uppercase shadow-2xl">
+                <button onclick="fecharConfig()" class="float-right text-red-500 text-2xl font-black">✕</button>
                 <h3 class="font-black mb-6 italic text-sm border-b pb-2">Configurações Base</h3>
                 <button onclick="importarNomesPadrao()" class="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-black mb-6 text-[10px] uppercase tracking-widest">Importar Lista Padrão de Nomes</button>
-                <div class="space-y-4 font-black uppercase">
+                <div class="space-y-4">
                     <div class="flex gap-2 text-xs">
                         <input type="text" id="novo-nome" class="flex-1 p-2 border rounded-lg font-black uppercase" placeholder="Nome Completo">
                         <button onclick="adicionarNome()" class="bg-green-600 text-white px-6 rounded-lg font-black">ADD</button>
                     </div>
-                    <div id="lista-nomes-config" class="h-48 overflow-y-auto border rounded-lg p-2 bg-slate-50 text-[10px] font-black uppercase"></div>
+                    <div id="lista-nomes-config" class="h-48 overflow-y-auto border rounded-lg p-2 bg-slate-50 text-[10px] font-black"></div>
                 </div>
             </div>
         </div>
@@ -145,36 +155,22 @@
         }
 
         function verificarSenha() {
-            if (gestorAutenticado) {
-                gestorAutenticado = false;
-                alert("Modo Leitura Ativado.");
-                atualizarPermissoes();
-                return;
-            }
+            if (gestorAutenticado) { gestorAutenticado = false; alert("Modo Leitura Ativado."); atualizarPermissoes(); return; }
             const senha = prompt("Digite a senha do gestor:");
-            if (senha === "1570") {
-                gestorAutenticado = true;
-                alert("Acesso Gestor Liberado!");
-                atualizarPermissoes();
-            } else { alert("Senha Incorreta!"); }
+            if (senha === "1570") { gestorAutenticado = true; alert("Acesso Gestor Liberado!"); atualizarPermissoes(); } else { alert("Senha Incorreta!"); }
         }
 
         function atualizarPermissoes() {
             const btnLock = document.getElementById('btn-lock');
             if (gestorAutenticado) {
-                btnLock.innerText = "🔓 MODO GESTOR";
-                btnLock.className = "bg-green-600 px-3 py-1.5 rounded-md flex items-center gap-1 shadow-lg font-black transition";
+                btnLock.innerText = "🔓 MODO GESTOR"; btnLock.className = "bg-green-600 px-3 py-1.5 rounded-md flex items-center gap-1 shadow-lg font-black transition";
             } else {
-                btnLock.innerText = "🔒 MODO LEITURA";
-                btnLock.className = "bg-red-600 px-3 py-1.5 rounded-md flex items-center gap-1 shadow-inner font-black transition";
+                btnLock.innerText = "🔒 MODO LEITURA"; btnLock.className = "bg-red-600 px-3 py-1.5 rounded-md flex items-center gap-1 shadow-inner font-black transition";
             }
             renderLista(); 
         }
 
-        function abrirConfig() { 
-            if (!gestorAutenticado) { alert("Apenas o gestor altera a base."); return; }
-            document.getElementById('config-section').classList.remove('hidden'); 
-        }
+        function abrirConfig() { if (!gestorAutenticado) { alert("Acesso negado."); return; } document.getElementById('config-section').classList.remove('hidden'); }
         function fecharConfig() { document.getElementById('config-section').classList.add('hidden'); }
 
         async function adicionarNome() {
@@ -184,8 +180,7 @@
 
         async function importarNomesPadrao() {
             const lista = ["RAFAEL JANUARIO CUNHA", "RICKSON CARMO", "ROMUALDO AZEVEDO", "LUIS DOMINGOS", "JOSÉ CLAUDIO REIS", "PAULO TEIXEIRA", "DEIVEDE LIMA"];
-            for (let nome of lista) await db.collection("responsaveis").add({ nome: nome });
-            alert("Base sincronizada.");
+            for (let nome of lista) await db.collection("responsaveis").add({ nome: nome }); alert("Base sincronizada.");
         }
 
         async function excluirNome(id) { if(confirm("Remover?")) await db.collection("responsaveis").doc(id).delete(); }
@@ -198,21 +193,13 @@
                 responsavel: document.getElementById('responsavel').value,
                 data_inicio: document.getElementById('data_inicio').value,
                 data_conclusao: document.getElementById('data_conclusao').value,
-                status: "Não iniciado",
-                observacao: "",
-                timestamp: Date.now()
+                status: "Não iniciado", observacao: "", timestamp: Date.now()
             });
-            form.reset();
-            alert("Ação gravada com sucesso!");
+            form.reset(); alert("Gravado com sucesso!");
         });
 
-        async function mudarObservacao(id, texto) {
-            await db.collection("planos").doc(id).update({ observacao: texto.toUpperCase() });
-        }
-
-        async function mudarStatus(id, status) { 
-            await db.collection("planos").doc(id).update({ status: status }); 
-        }
+        async function mudarObservacao(id, texto) { await db.collection("planos").doc(id).update({ observacao: texto.toUpperCase() }); }
+        async function mudarStatus(id, status) { await db.collection("planos").doc(id).update({ status: status }); }
 
         function abrirEdicao(id) {
             if (!gestorAutenticado) return;
@@ -241,11 +228,9 @@
             fecharModal();
         });
 
-        async function deletarPlano(id) { 
-            if (!gestorAutenticado) return;
-            if(confirm("Excluir plano?")) await db.collection("planos").doc(id).delete(); 
-        }
+        async function deletarPlano(id) { if (!gestorAutenticado) return; if(confirm("Excluir?")) await db.collection("planos").doc(id).delete(); }
 
+        // SINCRONIZAÇÃO DE NOMES
         db.collection("responsaveis").onSnapshot(snap => {
             const select = document.getElementById('responsavel');
             const selectEdit = document.getElementById('edit-responsavel');
@@ -260,18 +245,44 @@
             });
         });
 
+        // SINCRONIZAÇÃO DE PLANOS
         db.collection("planos").onSnapshot(snap => {
             document.getElementById('loading-overlay').classList.add('hidden');
             dadosGerais = [];
             snap.forEach(doc => dadosGerais.push({id: doc.id, ...doc.data()}));
+            
+            atualizarFiltroNomes();
             renderLista();
             if(abaAtual === 'dashboard') renderDashboard();
         });
 
+        function atualizarFiltroNomes() {
+            const filtro = document.getElementById('filtro-pessoa');
+            const valorAtual = filtro.value;
+            const nomesComAcao = [...new Set(dadosGerais.map(p => p.responsavel))].sort();
+            
+            filtro.innerHTML = '<option value="TODOS">MOSTRAR TODOS OS NOMES</option>';
+            nomesComAcao.forEach(nome => {
+                filtro.innerHTML += `<option value="${nome}">${nome}</option>`;
+            });
+            filtro.value = valorAtual;
+        }
+
+        function limparFiltro() {
+            document.getElementById('filtro-pessoa').value = "TODOS";
+            renderLista();
+        }
+
         function renderLista() {
             const lista = document.getElementById('lista-planos');
+            const filtro = document.getElementById('filtro-pessoa').value;
             lista.innerHTML = '';
-            const filtrados = dadosGerais.filter(p => (abaAtual === 'concluidos') ? p.status === 'Concluído' : p.status !== 'Concluído');
+            
+            let filtrados = dadosGerais.filter(p => (abaAtual === 'concluidos') ? p.status === 'Concluído' : p.status !== 'Concluído');
+            
+            if (filtro !== "TODOS") {
+                filtrados = filtrados.filter(p => p.responsavel === filtro);
+            }
             
             filtrados.sort((a,b) => new Date(a.data_conclusao) - new Date(b.data_conclusao)).forEach(p => {
                 const diff = moment(p.data_conclusao).startOf('day').diff(moment().startOf('day'), 'days');
@@ -282,30 +293,25 @@
 
                 lista.innerHTML += `
                     <div class="p-4 bg-white flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-l-[10px] ${p.status === 'Concluído' ? 'border-green-600' : (diff < 0 ? 'border-red-600' : 'border-slate-300')} shadow-sm font-black uppercase tracking-tighter">
-                        <div class="flex items-start gap-4 flex-1 font-black">
+                        <div class="flex items-start gap-4 flex-1">
                             <div class="h-6 w-6 min-w-[1.5rem] rounded-full border-2 border-white shadow-lg ${cor} mt-1"></div>
                             <div class="flex-1 font-black">
                                 <div class="text-[12px] font-black text-blue-700 uppercase italic mb-1">
-                                    ${p.responsavel} <span class="text-slate-400 ml-4 font-black not-italic uppercase tracking-tighter uppercase">📅 VENCIMENTO: ${moment(p.data_conclusao).format('DD/MM/YYYY')}</span>
+                                    ${p.responsavel} <span class="text-slate-400 ml-4 font-black not-italic uppercase tracking-tighter">📅 VENCIMENTO: ${moment(p.data_conclusao).format('DD/MM/YYYY')}</span>
                                 </div>
                                 <div class="text-[14px] font-black text-slate-800 uppercase leading-tight mb-2 tracking-tighter">${p.titulo}</div>
-                                <textarea 
-                                    onblur="mudarObservacao('${p.id}', this.value)" 
-                                    class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-black text-red-600 outline-none min-h-[40px] uppercase shadow-inner" 
-                                    placeholder="⚠️ DESCREVA AQUI PENDÊNCIAS OU BLOQUEIOS...">${p.observacao || ''}</textarea>
+                                <textarea onblur="mudarObservacao('${p.id}', this.value)" ${!gestorAutenticado ? 'readonly' : ''} class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-black text-red-600 outline-none min-h-[40px] uppercase shadow-inner" placeholder="⚠️ DESCREVA AQUI PENDÊNCIAS OU BLOQUEIOS...">${p.observacao || ''}</textarea>
                             </div>
                         </div>
                         <div class="flex items-center justify-end gap-3 min-w-[220px] bg-slate-100 p-3 rounded-2xl shadow-sm">
-                            <!-- DROPDOWN LIBERADO PARA TODOS -->
-                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[10px] border-2 rounded-xl bg-white p-2 font-black outline-none uppercase cursor-pointer flex-1 shadow-sm">
+                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[10px] border-2 rounded-xl bg-white p-2 font-black outline-none uppercase cursor-pointer flex-1 shadow-sm font-black">
                                 <option ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
                                 <option ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
                                 <option ${p.status==='Concluído'?'selected':''}>Concluído</option>
                             </select>
-                            <!-- LÁPIS E X SÓ APARECEM NO MODO GESTOR -->
                             <div class="flex gap-2 ${!gestorAutenticado ? 'hidden' : ''}">
-                                <button onclick="abrirEdicao('${p.id}')" class="text-blue-600 text-2xl px-1 hover:scale-110 transition">✏️</button>
-                                <button onclick="deletarPlano('${p.id}')" class="text-slate-400 hover:text-red-500 font-black text-xl px-1">✕</button>
+                                <button onclick="abrirEdicao('${p.id}')" class="text-blue-600 text-2xl px-1 hover:scale-110 transition font-black">✏️</button>
+                                <button onclick="deletarPlano('${p.id}')" class="text-slate-400 hover:text-red-500 font-black text-xl px-1 font-black">✕</button>
                             </div>
                         </div>
                     </div>`;
@@ -332,7 +338,7 @@
             const respStats = {}; dadosGerais.filter(p => p.status !== 'Concluído').forEach(p => { respStats[p.responsavel] = (respStats[p.responsavel] || 0) + 1; });
             const chartResp = document.getElementById('chart-responsavel'); chartResp.innerHTML = '';
             Object.entries(respStats).sort((a,b) => b[1] - a[1]).slice(0, 5).forEach(([nome, qtd]) => {
-                chartResp.innerHTML += `<div class="flex justify-between items-center bg-white p-3 rounded-xl border-l-4 border-slate-900 shadow-md transition hover:scale-105 uppercase font-black"><span class="text-[10px] font-black uppercase italic tracking-tighter">${nome}</span><span class="bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black">${qtd} PENDÊNCIAS</span></div>`;
+                chartResp.innerHTML += `<div class="flex justify-between items-center bg-white p-3 rounded-xl border-l-4 border-slate-900 shadow-md transition hover:scale-105 uppercase font-black"><span class="text-[10px] font-black italic tracking-tighter">${nome}</span><span class="bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black">${qtd} PENDÊNCIAS</span></div>`;
             });
         }
     </script>
