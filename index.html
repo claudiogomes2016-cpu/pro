@@ -34,10 +34,12 @@ export default function App() {
   const [planos, setPlanos] = useState<Plano[]>([]);
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   
+  // Filtros
   const [filtroResponsavel, setFiltroResponsavel] = useState('TODOS');
   const [filtroArea, setFiltroArea] = useState<Area | 'TODOS'>('TODOS');
   const [filtroReqStatus, setFiltroReqStatus] = useState<RequisicaoStatus | 'TODOS'>('TODOS');
 
+  // Estados dos Formulários
   const [editingTask, setEditingTask] = useState<Plano | null>(null);
   const [newAction, setNewAction] = useState({
     titulo: '',
@@ -50,16 +52,29 @@ export default function App() {
 
   useEffect(() => {
     const qPlanos = query(collection(db, 'planos'), orderBy('timestamp', 'desc'));
-    onSnapshot(qPlanos, (snap) => {
+    const unsubPlanos = onSnapshot(qPlanos, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plano));
       setPlanos(data);
       setLoading(false);
     });
 
-    onSnapshot(collection(db, 'responsaveis'), (snap) => {
+    const qResp = collection(db, 'responsaveis');
+    const unsubResp = onSnapshot(qResp, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Responsavel));
       setResponsaveis(data);
+      
+      // Semente inicial de responsáveis caso esteja vazio
+      if (data.length === 0) {
+        ['CARLOS ALBERTO', 'MARIA HELENA', 'ROBERTO SILVA'].forEach(nome => {
+          addDoc(collection(db, 'responsaveis'), { nome });
+        });
+      }
     });
+
+    return () => {
+      unsubPlanos();
+      unsubResp();
+    };
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -74,6 +89,28 @@ export default function App() {
     setIsDrawerOpen(false);
   };
 
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask) return;
+    await updateDoc(doc(db, 'planos', editingTask.id), {
+      titulo: editingTask.titulo.toUpperCase(),
+      responsavel: editingTask.responsavel,
+      area: editingTask.area,
+      status_requisicao: editingTask.status_requisicao || '',
+      data_inicio: editingTask.data_inicio,
+      data_conclusao: editingTask.data_conclusao
+    });
+    setIsModalOpen(false);
+    setEditingTask(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("EXCLUIR DEFINITIVAMENTE?")) {
+      await deleteDoc(doc(db, 'planos', id));
+      setIsModalOpen(false);
+    }
+  };
+
   const filteredPlanos = planos.filter(p => {
     const tabMatch = activeTab === 'concluidos' ? p.status === 'Concluído' : p.status !== 'Concluído';
     const respMatch = filtroResponsavel === 'TODOS' || p.responsavel === filtroResponsavel;
@@ -82,10 +119,115 @@ export default function App() {
     return tabMatch && respMatch && areaMatch && reqMatch;
   });
 
+  if (loading) return <div className="fixed inset-0 bg-white flex items-center justify-center font-black text-blue-600 text-xl">CARREGANDO...</div>;
+
   return (
-    <div className="bg-[#f1f5f9] min-h-screen text-slate-900 uppercase">
-      {/* Navbar, Filtros (Controle de Áreas e Requisições) e Bento Grid implementados */}
-      {/* ... interface visual com filtros e cards ... */}
+    <div className="bg-[#f1f5f9] min-h-screen text-slate-900 font-sans uppercase">
+      {/* NAVBAR */}
+      <nav className="bg-white border-b border-slate-200 p-4 sticky top-0 z-40 shadow-sm flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 text-white px-3 py-1 rounded-lg text-xl font-black">B</div>
+          <span className="text-slate-900 text-lg font-black tracking-tighter">EXECUTE PRO <span className="text-blue-600">v24</span></span>
+        </div>
+        <div className="flex gap-4 md:gap-6 text-[10px] md:text-[11px] items-center">
+          <button onClick={() => setActiveTab('lista')} className={`pb-1 font-black ${activeTab === 'lista' ? 'aba-ativa' : ''}`}>ATIVOS</button>
+          <button onClick={() => setActiveTab('concluidos')} className={`pb-1 font-black ${activeTab === 'concluidos' ? 'aba-ativa' : ''}`}>CONCLUÍDOS</button>
+          <button onClick={() => setActiveTab('dashboard')} className={`pb-1 font-black ${activeTab === 'dashboard' ? 'aba-ativa' : ''}`}>BI</button>
+          <button onClick={() => setGestorAutenticado(!gestorAutenticado)} className={`px-4 py-2 rounded-lg font-black shadow-sm ${gestorAutenticado ? 'bg-green-600 text-white' : 'bg-slate-100 text-red-600'}`}>
+            {gestorAutenticado ? '🔓 GESTOR' : '🔒 ACESSO'}
+          </button>
+        </div>
+      </nav>
+
+      <div className="container mx-auto p-4 lg:p-10">
+        {/* PAINEL DE FILTROS */}
+        <div className="bi-card p-6 mb-8 bg-white border border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-black text-slate-500">ÁREA / SETOR</label>
+              <select value={filtroArea} onChange={(e) => setFiltroArea(e.target.value as any)} className="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-xs font-black outline-none outline-none cursor-pointer">
+                <option value="TODOS">MOSTRAR TODAS</option>
+                {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-black text-slate-500">DOCUMENTO</label>
+              <select value={filtroReqStatus} onChange={(e) => setFiltroReqStatus(e.target.value as any)} className="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-xs font-black outline-none outline-none cursor-pointer">
+                <option value="TODOS">TODOS OS TIPOS</option>
+                {REQ_STATUS.map(rs => <option key={rs} value={rs}>{rs}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-black text-slate-500">RESPONSÁVEL</label>
+              <select value={filtroResponsavel} onChange={(e) => setFiltroResponsavel(e.target.value)} className="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-xs font-black outline-none outline-none cursor-pointer">
+                <option value="TODOS">TODOS OS NOMES</option>
+                {[...new Set(planos.map(p => p.responsavel))].sort().map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <button onClick={() => setIsDrawerOpen(true)} className="w-full bg-blue-600 text-white h-[46px] rounded-xl font-black shadow-lg hover:bg-blue-700 transition uppercase text-xs flex items-center justify-center gap-2">
+                <Plus size={16} /> NOVA TAREFA
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* LAYOUT GRID (SIDEBAR + CONTEÚDO) */}
+        <div className="grid grid-cols-12 gap-6">
+          {/* KPI SIDEBAR */}
+          <div className="col-span-12 lg:col-span-3 flex flex-col gap-4">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 mb-1">TOTAL PENDENTE</p>
+              <h4 className="text-4xl font-black text-slate-900">{planos.filter(p => p.status !== 'Concluído').length}</h4>
+            </div>
+            <div className="bg-red-50 p-6 rounded-2xl border border-red-100 shadow-sm">
+              <p className="text-[10px] font-black text-red-400 mb-1">EM ATRASO</p>
+              <h4 className="text-4xl font-black text-red-600">
+                {planos.filter(p => p.status !== 'Concluído' && moment(p.data_conclusao).isBefore(moment().startOf('day'))).length}
+              </h4>
+            </div>
+          </div>
+
+          {/* LISTA PRINCIPAL */}
+          <div className="col-span-12 lg:col-span-9">
+            {activeTab !== 'dashboard' ? (
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {filteredPlanos.map((p) => {
+                    const prazo = moment(p.data_conclusao).startOf('day');
+                    const atrasado = prazo.isBefore(moment().startOf('day')) && p.status !== 'Concluído';
+                    const corBar = p.status === 'Concluído' ? 'border-green-600' : atrasado ? 'border-red-600' : p.status === 'Em andamento' ? 'border-yellow-400' : 'border-blue-600';
+                    
+                    return (
+                      <motion.div layout key={p.id} className={`bg-white border-l-[20px] ${corBar} p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center`}>
+                        <div className="flex-grow w-full">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className={`${atrasado ? 'bg-red-100 text-red-700 italic' : p.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} text-[9px] px-2 py-0.5 rounded font-black`}>
+                              {atrasado ? `URGENTE: ${p.area}` : p.area}
+                            </span>
+                            <span className="text-slate-400 text-[10px] font-black">PRAZO: {moment(p.data_conclusao).format('DD/MM/YYYY')}</span>
+                          </div>
+                          <h3 className="text-sm font-black text-slate-800 mb-3">{p.titulo}</h3>
+                          <textarea className="w-full p-3 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black" placeholder="NOTAS E PENDÊNCIAS..." defaultValue={p.observacao} onBlur={(e) => updateDoc(doc(db,'planos',p.id), {observacao: e.target.value.toUpperCase()})} />
+                        </div>
+                        <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">
+                           <select value={p.status} onChange={(e) => updateDoc(doc(db,'planos',p.id), {status: e.target.value})} className="text-[10px] p-3 border border-slate-200 rounded-lg bg-white font-black">
+                              <option>Não iniciado</option><option>Em andamento</option><option>Concluído</option>
+                           </select>
+                           <div className="flex justify-between items-center bg-slate-50 p-2 rounded">
+                              <span className="text-[9px] font-black text-slate-500">{p.status_requisicao || 'S/ PEDIDO'}</span>
+                              {gestorAutenticado && <button onClick={() => {setEditingTask(p); setIsModalOpen(true)}} className="text-blue-600"><Edit2 size={14} /></button>}
+                           </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            ) : <div className="bi-card p-10 h-full min-h-[400px] flex items-end justify-around gap-10">/* Conteúdo do BI Dashboard */</div>}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
