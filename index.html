@@ -1,1102 +1,437 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXECUTE PRO v24</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,900&family=Barlow:wght@400;600;700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExecutePro BI - v24 Bento Grid</title>
+    <!-- Tailwind CSS 4 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bibliotecas Auxiliares -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        * { 
+            font-style: normal !important; 
+            font-family: 'Inter', sans-serif; 
+            font-weight: 800 !important; 
+            text-transform: uppercase !important; 
+            letter-spacing: -0.0125em; 
+        }
 
-  :root {
-    --blue: #2563eb;
-    --blue-light: #eff6ff;
-    --blue-shadow: rgba(37,99,235,0.15);
-    --red: #dc2626;
-    --red-light: #fef2f2;
-    --green: #16a34a;
-    --green-light: #f0fdf4;
-    --yellow: #f59e0b;
-    --yellow-light: #fffbeb;
-    --slate-50: #f8fafc;
-    --slate-100: #f1f5f9;
-    --slate-200: #e2e8f0;
-    --slate-400: #94a3b8;
-    --slate-500: #64748b;
-    --slate-600: #475569;
-    --slate-800: #1e293b;
-    --slate-900: #0f172a;
-    --white: #ffffff;
-    --radius: 20px;
-    --radius-sm: 12px;
-  }
+        body { background-color: #f1f5f9; color: #0f172a; }
 
-  body {
-    font-family: 'Barlow', sans-serif;
-    background: var(--slate-50);
-    color: var(--slate-900);
-    min-height: 100vh;
-  }
+        .aba-ativa { border-bottom: 3px solid #2563eb; color: #2563eb; }
+        
+        .bi-card { 
+            background: #fff; 
+            border-radius: 16px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            border: 1px solid #e2e8f0; 
+            transition: all 0.2s ease;
+        }
+        .bi-card:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
-  /* HEADER */
-  header {
-    background: var(--white);
-    border-bottom: 1px solid var(--slate-200);
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-  }
-  .header-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    height: 72px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .logo-icon {
-    background: var(--blue);
-    padding: 10px;
-    border-radius: 14px;
-    box-shadow: 0 8px 24px var(--blue-shadow);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .logo-icon svg { color: white; }
-  .logo-text {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 900;
-    font-style: italic;
-    text-transform: uppercase;
-    letter-spacing: -0.5px;
-  }
-  .logo-text span { color: var(--blue); }
-  nav { display: flex; gap: 1.5rem; align-items: center; }
-  nav button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    color: var(--slate-400);
-    padding-bottom: 3px;
-    border-bottom: 3px solid transparent;
-    transition: all 0.15s;
-    letter-spacing: 0.5px;
-  }
-  nav button.active { color: var(--blue); border-bottom-color: var(--blue); }
-  nav button:hover:not(.active) { color: var(--slate-600); }
+        .critical-glow { animation: pulse-red 2.5s infinite ease-in-out; }
+        @keyframes pulse-red { 
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 
+            70% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } 
+        }
 
-  /* MAIN */
-  main {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  /* FILTER BAR */
-  .filter-bar {
-    background: var(--white);
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--slate-200);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-    margin-bottom: 2rem;
-  }
-  .filter-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: 1rem;
-    align-items: end;
-  }
-  .filter-group { display: flex; flex-direction: column; gap: 6px; }
-  .filter-group label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--slate-400);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  select, input[type="text"], input[type="date"], textarea {
-    background: var(--slate-50);
-    border: 2px solid var(--slate-100);
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    cursor: pointer;
-    outline: none;
-    width: 100%;
-    transition: border-color 0.15s;
-    color: var(--slate-800);
-  }
-  select:focus, input:focus, textarea:focus { border-color: var(--blue); }
-  textarea { text-transform: none; font-family: 'Barlow', sans-serif; font-weight: 600; resize: vertical; }
-
-  .btn-primary {
-    background: var(--blue);
-    color: white;
-    border: none;
-    padding: 14px 20px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px var(--blue-shadow);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.15s;
-    white-space: nowrap;
-    width: 100%;
-  }
-  .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-  .btn-primary:active { transform: scale(0.97); }
-
-  /* LAYOUT GRID */
-  .content-grid {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
-
-  /* SIDEBAR KPIs */
-  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
-  .kpi-card {
-    background: var(--white);
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--slate-200);
-    transition: transform 0.15s;
-  }
-  .kpi-card:hover { transform: scale(1.02); }
-  .kpi-card.red { background: var(--red-light); border-color: #fee2e2; }
-  .kpi-card.green { background: var(--green-light); border-color: #dcfce7; }
-  .kpi-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--slate-400);
-    margin-bottom: 4px;
-  }
-  .kpi-card.red .kpi-label { color: var(--red); }
-  .kpi-card.green .kpi-label { color: var(--green); }
-  .kpi-value {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 3.5rem;
-    font-weight: 900;
-    line-height: 1;
-    color: var(--slate-900);
-  }
-  .kpi-card.red .kpi-value { color: var(--red); }
-  .kpi-card.green .kpi-value { color: var(--green); }
-
-  /* TASK LIST */
-  .tasks-area { display: flex; flex-direction: column; gap: 1rem; }
-  .task-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 1.5rem 2rem;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    border: 1px solid var(--slate-100);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    transition: box-shadow 0.2s, transform 0.2s;
-    animation: fadeIn 0.2s ease;
-  }
-  @keyframes fadeIn { from { opacity:0; transform: scale(0.97); } to { opacity:1; transform: scale(1); } }
-  .task-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-  .task-body { flex: 1; }
-  .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-  .status-badge {
-    padding: 4px 14px;
-    border-radius: 999px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: var(--blue-light);
-    color: var(--blue);
-  }
-  .status-badge.concluido { background: var(--green-light); color: var(--green); }
-  .status-badge.atrasado { background: var(--red-light); color: var(--red); border: 2px solid var(--red); animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.7; } }
-  .task-date {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--slate-400);
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .task-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    line-height: 1.2;
-  }
-  .task-meta { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 12px; align-items: center; }
-  .meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    color: var(--slate-600);
-  }
-  .meta-item.area { color: var(--blue); }
-  .task-obs {
-    font-size: 0.85rem;
-    font-style: italic;
-    color: var(--slate-500);
-    background: var(--slate-50);
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    font-weight: 600;
-  }
-  .task-actions { display: flex; flex-direction: column; gap: 8px; }
-  .status-select {
-    width: 170px;
-    padding: 12px;
-    font-size: 0.82rem;
-  }
-  .btn-edit {
-    padding: 12px;
-    background: var(--slate-100);
-    color: var(--slate-600);
-    border: none;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-  }
-  .btn-edit:hover { background: var(--blue); color: white; }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 5rem 2rem;
-    background: var(--white);
-    border-radius: var(--radius);
-    border: 2px dashed var(--slate-200);
-  }
-  .empty-state svg { color: var(--slate-300); margin-bottom: 1rem; }
-  .empty-state p {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--slate-400);
-  }
-
-  /* CONCLUDED KPIs */
-  .concluded-kpis {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  .concluded-kpi {
-    background: var(--white);
-    padding: 1rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--slate-200);
-    text-align: center;
-  }
-  .concluded-kpi span:first-child {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--slate-400);
-    display: block;
-    margin-bottom: 6px;
-    line-height: 1.2;
-  }
-  .concluded-kpi span:last-child {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 900;
-    color: var(--green);
-  }
-
-  /* DASHBOARD */
-  .dashboard-grid { display: flex; flex-direction: column; gap: 2rem; }
-  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-  .chart-card {
-    background: var(--white);
-    padding: 2rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--slate-200);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  }
-  .chart-card-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 1.5rem;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--slate-800);
-  }
-  .chart-card-title svg { color: var(--blue); }
-  .chart-wrapper { height: 300px; position: relative; }
-  .bi-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-  .bi-card {
-    background: var(--white);
-    padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  }
-  .bi-card.blue { border-top: 8px solid var(--blue); }
-  .bi-card.yellow { border-top: 8px solid var(--yellow); }
-  .bi-card.green { border-top: 8px solid var(--green); }
-  .bi-card-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--slate-400);
-    margin-bottom: 12px;
-  }
-  .bi-card-val {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-  }
-  .bi-card-val span:first-child {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2.8rem;
-    font-weight: 900;
-    line-height: 1;
-    color: var(--slate-900);
-  }
-  .bi-card-val .bi-unit {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-  }
-  .bi-card.blue .bi-unit { color: var(--blue); }
-  .bi-card.yellow .bi-unit { color: var(--yellow); }
-  .bi-card.green .bi-unit { color: var(--green); }
-
-  /* DRAWER */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15,23,42,0.6);
-    backdrop-filter: blur(4px);
-    z-index: 40;
-    display: none;
-    animation: fadeOverlay 0.2s ease;
-  }
-  @keyframes fadeOverlay { from{opacity:0} to{opacity:1} }
-  .overlay.open { display: block; }
-
-  .drawer {
-    position: fixed;
-    right: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    max-width: 440px;
-    background: var(--white);
-    z-index: 50;
-    padding: 2rem;
-    overflow-y: auto;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    box-shadow: -8px 0 40px rgba(0,0,0,0.15);
-  }
-  .drawer.open { transform: translateX(0); }
-  .drawer-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2rem;
-    font-weight: 900;
-    font-style: italic;
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    letter-spacing: -0.5px;
-  }
-  .drawer-title span { color: var(--blue); }
-  .form-group { margin-bottom: 1.25rem; }
-  .form-group label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--slate-400);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: block;
-    margin-bottom: 6px;
-  }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
-  .drawer-btns { display: flex; gap: 12px; padding-top: 1rem; }
-  .btn-cancel {
-    flex: 1;
-    padding: 16px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    background: var(--slate-100);
-    color: var(--slate-600);
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .btn-cancel:hover { background: var(--slate-200); }
-  .btn-submit {
-    flex: 2;
-    padding: 16px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    background: var(--blue);
-    color: white;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 16px var(--blue-shadow);
-    transition: background 0.15s;
-  }
-  .btn-submit:hover { background: #1d4ed8; }
-
-  /* MODAL */
-  .modal-wrap {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-  .modal-wrap.open { display: flex; }
-  .modal-box {
-    position: relative;
-    background: var(--white);
-    width: 100%;
-    max-width: 520px;
-    border-radius: var(--radius);
-    padding: 2rem;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalIn 0.2s ease;
-  }
-  @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-  .modal-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.75rem;
-    font-weight: 900;
-    font-style: italic;
-    text-transform: uppercase;
-    letter-spacing: -0.5px;
-  }
-  .modal-title span { color: var(--blue); }
-  .btn-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--slate-400);
-    padding: 4px;
-    transition: color 0.15s;
-  }
-  .btn-close:hover { color: var(--slate-900); }
-  .modal-btns { display: flex; gap: 12px; margin-top: 1.5rem; }
-  .btn-delete {
-    flex: 1;
-    padding: 16px;
-    border-radius: var(--radius-sm);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    text-transform: uppercase;
-    background: var(--red-light);
-    color: var(--red);
-    border: 2px solid #fee2e2;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .btn-delete:hover { background: var(--red); color: white; }
-
-  /* SVG ICONS (inline) */
-  .icon { display: inline-flex; align-items: center; justify-content: center; }
-
-  @media (max-width: 900px) {
-    .filter-grid { grid-template-columns: 1fr 1fr; }
-    .content-grid { grid-template-columns: 1fr; }
-    .sidebar { flex-direction: row; flex-wrap: wrap; }
-    .kpi-card { flex: 1; min-width: 140px; }
-    .charts-row { grid-template-columns: 1fr; }
-    .bi-cards { grid-template-columns: 1fr; }
-    .task-card { flex-direction: column; align-items: flex-start; }
-    .task-actions { flex-direction: row; width: 100%; }
-    .status-select { flex: 1; width: auto; }
-  }
-  @media (max-width: 600px) {
-    .filter-grid { grid-template-columns: 1fr; }
-    .header-inner { padding: 0 1rem; }
-    nav button { font-size: 0.85rem; }
-    main { padding: 1rem; }
-  }
-</style>
+        .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
 </head>
-<body>
+<body class="leading-tight">
 
-<header>
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-icon">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      </div>
-      <span class="logo-text">EXECUTE PRO <span>v24</span></span>
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex items-center justify-center font-black text-blue-600 text-xl uppercase italic">CARREGANDO SISTEMA...</div>
+
+    <!-- SIDE DRAWER (NOVO PLANO) -->
+    <div id="drawer-form" class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white shadow-2xl z-[90] translate-x-full border-l border-slate-200 p-8 overflow-y-auto drawer">
+        <div class="flex justify-between items-center mb-8 border-b pb-4">
+            <h3 class="text-xl text-blue-600 font-black">NOVO PLANO</h3>
+            <button onclick="toggleForm()" class="text-slate-400 text-3xl font-black hover:text-slate-600">✕</button>
+        </div>
+        <form id="form-plano" class="space-y-6">
+            <input type="text" id="titulo" required class="w-full p-4 border-2 border-slate-100 rounded-xl bg-slate-50 font-black outline-none focus:border-blue-600" placeholder="TÍTULO DA TAREFA">
+            
+            <div class="grid grid-cols-2 gap-4 italic text-slate-500 text-[10px] uppercase font-black">
+                <span>RESPONSÁVEL</span>
+                <span>ÁREA / SETOR</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <select id="responsavel" required class="w-full p-4 border-2 border-slate-100 rounded-xl bg-slate-50 font-black cursor-pointer"></select>
+                <select id="area" required class="w-full p-4 border-2 border-slate-100 rounded-xl bg-slate-50 font-black">
+                    <option value="EHS">EHS</option>
+                    <option value="SODEXO">SODEXO</option>
+                    <option value="INHAUS">INHAUS</option>
+                    <option value="OBRA CIVIL">OBRA CIVIL</option>
+                    <option value="OUTROS">OUTROS</option>
+                </select>
+            </div>
+
+            <div class="italic text-slate-500 text-[10px] uppercase font-black">STATUS REQUISIÇÃO / COMPRA</div>
+            <select id="status_requisicao" class="w-full p-4 border-2 border-slate-100 rounded-xl bg-slate-50 font-black">
+                <option value="">NENHUM</option>
+                <option value="REQUISIÇÃO">REQUISIÇÃO</option>
+                <option value="PEDIDO DE COMPRA">PEDIDO DE COMPRA</option>
+            </select>
+
+            <div class="grid grid-cols-2 gap-4">
+                <input type="date" id="data_inicio" required class="w-full p-4 border rounded-xl text-xs bg-slate-50 font-black">
+                <input type="date" id="data_conclusao" required class="w-full p-4 border rounded-xl text-xs bg-slate-50 font-black">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 uppercase">GRAVAR NA NUVEM</button>
+        </form>
     </div>
-    <nav>
-      <button class="active" onclick="setTab('lista')">ATIVAS</button>
-      <button onclick="setTab('concluidos')">HISTÓRICO</button>
-      <button onclick="setTab('dashboard')">DASHBOARD BI</button>
+
+    <!-- MODAL EDIÇÃO -->
+    <div id="modal-edit" class="hidden fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200">
+            <h3 class="text-xl mb-6 font-black flex justify-between">EDITAR PLANO <button onclick="fecharModal()" class="text-slate-400">✕</button></h3>
+            <form id="form-edit" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="edit-titulo" class="w-full p-3 border rounded-xl font-black outline-none">
+                <div class="grid grid-cols-2 gap-4 uppercase font-black italic text-[9px] text-slate-400">
+                    <span>RESPONSÁVEL</span>
+                    <span>ÁREA</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="edit-responsavel" class="w-full p-3 border rounded-xl font-black"></select>
+                    <select id="edit-area" class="w-full p-3 border rounded-xl font-black">
+                        <option value="EHS">EHS</option>
+                        <option value="SODEXO">SODEXO</option>
+                        <option value="INHAUS">INHAUS</option>
+                        <option value="OBRA CIVIL">OBRA CIVIL</option>
+                        <option value="OUTROS">OUTROS</option>
+                    </select>
+                </div>
+                <div class="italic text-slate-400 text-[9px] uppercase font-black">STATUS DOCUMENTO</div>
+                <select id="edit-requisicao" class="w-full p-3 border rounded-xl font-black">
+                    <option value="">NENHUM</option>
+                    <option value="REQUISIÇÃO">REQUISIÇÃO</option>
+                    <option value="PEDIDO DE COMPRA">PEDIDO DE COMPRA</option>
+                </select>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" id="edit-data-inicio" class="w-full p-3 border rounded-lg text-xs font-black">
+                    <input type="date" id="edit-data-fim" class="w-full p-3 border rounded-lg text-xs font-black">
+                </div>
+                <div class="pt-4 space-y-3">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black">SALVAR MUDANÇAS</button>
+                    <button type="button" onclick="deletarNoModal()" class="w-full bg-red-50 text-red-600 py-3 rounded-xl font-black text-[10px]">EXCLUIR DEFINITIVAMENTE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- NAVEGAÇÃO -->
+    <nav class="bg-white border-b border-slate-200 p-4 sticky top-0 z-40 font-black shadow-sm">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xl">B</div>
+                <span class="text-slate-900 text-lg font-black tracking-tighter">EXECUTE PRO <span class="text-blue-600">v24</span></span>
+            </div>
+            <div class="flex gap-4 md:gap-6 text-[10px] md:text-[11px] items-center">
+                <button onclick="mudarAba('lista')" id="tab-ativos" class="aba-ativa pb-1">ATIVOS</button>
+                <button onclick="mudarAba('concluidos')" id="tab-concluidos" class="pb-1 text-slate-400">CONCLUÍDOS</button>
+                <button onclick="mudarAba('dashboard')" id="tab-dash" class="pb-1 text-slate-400">BI</button>
+                <button onclick="verificarSenha()" id="btn-lock" class="bg-slate-100 px-4 py-2 rounded-lg text-red-600 shadow-sm transition">🔒 ACESSO</button>
+            </div>
+        </div>
     </nav>
-  </div>
-</header>
 
-<main>
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
-    <div class="filter-grid">
-      <div class="filter-group">
-        <label>ÁREA / SETOR</label>
-        <select id="filtroArea" onchange="renderAll()">
-          <option value="TODOS">MOSTRAR TODAS</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>STATUS FINANCEIRO</label>
-        <select id="filtroReq" onchange="renderAll()">
-          <option value="TODOS">TODOS OS TIPOS</option>
-          <option value="REQUISIÇÃO">REQUISIÇÃO</option>
-          <option value="PEDIDO DE COMPRA">PEDIDO DE COMPRA</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>RESPONSÁVEL</label>
-        <select id="filtroResp" onchange="renderAll()">
-          <option value="TODOS">TODOS OS NOMES</option>
-        </select>
-      </div>
-      <div>
-        <button class="btn-primary" onclick="openDrawer()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          NOVA AÇÃO PROJETO
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN CONTENT GRID -->
-  <div class="content-grid">
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <div class="kpi-card">
-        <div class="kpi-label">TOTAL PENDENTE</div>
-        <div class="kpi-value" id="kpiPendente">0</div>
-      </div>
-      <div class="kpi-card red">
-        <div class="kpi-label">EM ATRASO</div>
-        <div class="kpi-value" id="kpiAtraso">0</div>
-      </div>
-      <div class="kpi-card green">
-        <div class="kpi-label">CONCLUÍDO (GERAL)</div>
-        <div class="kpi-value" id="kpiConcluido">0</div>
-      </div>
-    </div>
-
-    <!-- MAIN AREA -->
-    <div id="mainArea"></div>
-  </div>
-</main>
-
-<!-- DRAWER -->
-<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-title">NOVA AÇÃO <span>PROJETO</span></div>
-  <div class="form-group">
-    <label>TÍTULO DO PROJETO / TAREFA</label>
-    <input type="text" id="fTitulo" placeholder="Ex: Reforma telhado setor A" required>
-  </div>
-  <div class="form-group">
-    <label>RESPONSÁVEL PELA EXECUÇÃO</label>
-    <input type="text" id="fResp" placeholder="Nome do colaborador" required>
-  </div>
-  <div class="form-row">
-    <div class="form-group" style="margin-bottom:0">
-      <label>ÁREA / SETOR</label>
-      <select id="fArea"></select>
-    </div>
-    <div class="form-group" style="margin-bottom:0">
-      <label>STATUS FINANC.</label>
-      <select id="fReqStatus">
-        <option value="">S/ DOCUMENTO</option>
-        <option value="REQUISIÇÃO">REQUISIÇÃO</option>
-        <option value="PEDIDO DE COMPRA">PEDIDO DE COMPRA</option>
-      </select>
-    </div>
-  </div>
-  <div class="form-row" style="margin-top:1.25rem">
-    <div class="form-group" style="margin-bottom:0">
-      <label>DATA INÍCIO</label>
-      <input type="date" id="fInicio">
-    </div>
-    <div class="form-group" style="margin-bottom:0">
-      <label>PRAZO FINAL</label>
-      <input type="date" id="fFim">
-    </div>
-  </div>
-  <div class="form-group" style="margin-top:1.25rem">
-    <label>NOTAS E DETALHES</label>
-    <textarea id="fObs" rows="4" placeholder="Adicione informações relevantes..."></textarea>
-  </div>
-  <div class="drawer-btns">
-    <button class="btn-cancel" onclick="closeDrawer()">CANCELAR</button>
-    <button class="btn-submit" onclick="createTask()">CADASTRAR AÇÃO</button>
-  </div>
-</div>
-
-<!-- MODAL EDIÇÃO -->
-<div class="overlay" id="overlayModal" onclick="closeModal()"></div>
-<div class="modal-wrap" id="modalWrap">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">EDITAR <span>REGISTRO</span></div>
-      <button class="btn-close" onclick="closeModal()">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="form-group">
-      <label>TÍTULO</label>
-      <input type="text" id="eTitulo">
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="margin-bottom:0">
-        <label>RESPONSÁVEL</label>
-        <input type="text" id="eResp">
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>ÁREA</label>
-        <select id="eArea"></select>
-      </div>
-    </div>
-    <div class="form-group" style="margin-top:1.25rem">
-      <label>STATUS FINANCEIRO</label>
-      <select id="eReqStatus">
-        <option value="">S/ DOCUMENTO</option>
-        <option value="REQUISIÇÃO">REQUISIÇÃO</option>
-        <option value="PEDIDO DE COMPRA">PEDIDO DE COMPRA</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>OBSERVAÇÕES PROGRESSO</label>
-      <textarea id="eObs" rows="3"></textarea>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-submit" style="flex:2" onclick="saveEdit()">SALVAR ALTERAÇÕES</button>
-      <button class="btn-delete" id="btnDelete" style="display:none" onclick="deleteTask()">DELETAR</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const AREAS = ['EHS','SODEXO','INHAUS','OBRA CIVIL','SEGURANÇA','PROJETO','AVARIA SODEXO','AVARIA IN HAUS','AVARIA TRANSPORTADORA','REFORMA','PINTURA','OUTROS'];
-const STORAGE_KEY = 'executepro_v24';
-
-let planos = [];
-let activeTab = 'lista';
-let gestorAutenticado = false;
-let editingId = null;
-let barChart = null, pieChart = null;
-
-// Init
-(function init() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) planos = JSON.parse(saved);
-
-  // Auth
-  const pass = prompt('SENHA DE ACESSO (Opcional - cancele para apenas visualizar):');
-  if (pass === 'admin123') gestorAutenticado = true;
-
-  // Populate area selects
-  [document.getElementById('filtroArea'), document.getElementById('fArea'), document.getElementById('eArea')].forEach(sel => {
-    AREAS.forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a; opt.textContent = a;
-      sel.appendChild(opt);
-    });
-  });
-
-  // Default dates
-  const today = toDateStr(new Date());
-  const plus7 = toDateStr(new Date(Date.now() + 7*86400000));
-  document.getElementById('fInicio').value = today;
-  document.getElementById('fFim').value = plus7;
-
-  renderAll();
-})();
-
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(planos));
-}
-
-function toDateStr(d) {
-  return d.toISOString().split('T')[0];
-}
-
-function isAfter(dateStr) {
-  return new Date(dateStr) < new Date(toDateStr(new Date()));
-}
-
-function fmt(dateStr) {
-  const [y,m,d] = dateStr.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function setTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('nav button').forEach((b,i) => {
-    b.classList.toggle('active', ['lista','concluidos','dashboard'][i] === tab);
-  });
-  renderAll();
-}
-
-function getFiltered() {
-  const area = document.getElementById('filtroArea').value;
-  const req = document.getElementById('filtroReq').value;
-  const resp = document.getElementById('filtroResp').value;
-  return planos.filter(p => {
-    const matchStatus = activeTab === 'concluidos' ? p.status === 'Concluído' : p.status !== 'Concluído';
-    const matchArea = area === 'TODOS' || p.area === area;
-    const matchReq = req === 'TODOS' || p.status_requisicao === req;
-    const matchResp = resp === 'TODOS' || p.responsavel === resp;
-    return matchStatus && matchArea && matchReq && matchResp;
-  });
-}
-
-function renderAll() {
-  // Update KPIs
-  document.getElementById('kpiPendente').textContent = planos.filter(p => p.status !== 'Concluído').length;
-  document.getElementById('kpiAtraso').textContent = planos.filter(p => isAfter(p.data_conclusao) && p.status !== 'Concluído').length;
-  document.getElementById('kpiConcluido').textContent = planos.filter(p => p.status === 'Concluído').length;
-
-  // Update responsavel filter
-  const respSel = document.getElementById('filtroResp');
-  const curVal = respSel.value;
-  respSel.innerHTML = '<option value="TODOS">TODOS OS NOMES</option>';
-  [...new Set(planos.map(p => p.responsavel))].sort().forEach(n => {
-    const opt = document.createElement('option');
-    opt.value = n; opt.textContent = n;
-    respSel.appendChild(opt);
-  });
-  if (curVal) respSel.value = curVal;
-
-  const container = document.getElementById('mainArea');
-
-  if (activeTab === 'dashboard') {
-    renderDashboard(container);
-  } else {
-    renderTasks(container);
-  }
-}
-
-function renderTasks(container) {
-  const filtered = getFiltered();
-  let html = '';
-
-  // Concluded KPIs
-  if (activeTab === 'concluidos') {
-    const withCount = AREAS.map(a => ({ area: a, count: planos.filter(p => p.status === 'Concluído' && p.area === a).length })).filter(x => x.count > 0);
-    if (withCount.length) {
-      html += '<div class="concluded-kpis">';
-      withCount.forEach(x => {
-        html += `<div class="concluded-kpi"><span>${x.area}</span><span>${x.count}</span></div>`;
-      });
-      html += '</div>';
-    }
-  }
-
-  html += '<div class="tasks-area">';
-  if (!filtered.length) {
-    html += `<div class="empty-state">
-      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-      <p>Nenhuma ação encontrada para este filtro.</p>
-    </div>`;
-  } else {
-    filtered.forEach(p => {
-      const late = isAfter(p.data_conclusao) && p.status !== 'Concluído';
-      const badgeClass = p.status === 'Concluído' ? 'concluido' : late ? 'atrasado' : '';
-      html += `<div class="task-card">
-        <div class="task-body">
-          <div class="task-header">
-            <span class="status-badge ${badgeClass}">${p.status}</span>
-            <span class="task-date">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              LIMITE: ${fmt(p.data_conclusao)}
-            </span>
-          </div>
-          <div class="task-title">${p.titulo}</div>
-          <div class="task-meta">
-            <div class="meta-item">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              ${p.responsavel}
+    <div class="container mx-auto p-4 lg:p-10">
+        <!-- PAINEL DE CONTROLE (BENTO FILTERS) -->
+        <div class="bi-card p-6 mb-8 bg-white border-b border-slate-200">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                <div class="flex flex-col gap-2">
+                    <label class="text-[9px] font-black text-slate-500 italic">ÁREA / SETOR</label>
+                    <select id="filtro-area" onchange="renderLista()" class="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-xs font-black outline-none cursor-pointer">
+                        <option value="TODOS">MOSTRAR TODAS</option>
+                        <option value="EHS">EHS</option>
+                        <option value="SODEXO">SODEXO</option>
+                        <option value="INHAUS">INHAUS</option>
+                        <option value="OBRA CIVIL">OBRA CIVIL</option>
+                        <option value="OUTROS">OUTROS</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[9px] font-black text-slate-500 italic">DOCUMENTO</label>
+                    <select id="filtro-requisicao" onchange="renderLista()" class="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-xs font-black outline-none cursor-pointer">
+                        <option value="TODOS">TODOS OS TIPOS</option>
+                        <option value="REQUISIÇÃO">REQUISIÇÃO</option>
+                        <option value="PEDIDO DE COMPRA">PEDIDO DE COMPRA</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[9px] font-black text-slate-500 italic">RESPONSÁVEL</label>
+                    <select id="filtro-pessoa" onchange="renderLista()" class="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-xs font-black outline-none cursor-pointer"></select>
+                </div>
+                <div>
+                    <button onclick="toggleForm()" class="w-full bg-blue-600 text-white h-[46px] rounded-xl font-black shadow-lg hover:bg-blue-700 transition text-xs">+ NOVA AÇÃO</button>
+                </div>
             </div>
-            <div class="meta-item area">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-              ${p.area}
+        </div>
+
+        <div class="grid grid-cols-12 gap-6">
+            <!-- SIDEBAR KPI -->
+            <div id="sidebar-kpi" class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">TOTAL PENDENTE</p>
+                    <h4 id="kpi-pendente" class="text-4xl font-black text-slate-900 tracking-tighter">0</h4>
+                </div>
+                <div class="bg-red-50 p-6 rounded-2xl border border-red-100 shadow-sm italic">
+                    <p class="text-[10px] font-black text-red-400 uppercase mb-1">EM ATRASO</p>
+                    <h4 id="kpi-atraso" class="text-4xl font-black text-red-600 tracking-tighter">0</h4>
+                </div>
+                <div class="bg-green-50 p-6 rounded-2xl border border-green-100 shadow-sm">
+                    <p class="text-[10px] font-black text-green-400 uppercase mb-1">CONCLUÍDO (GERAL)</p>
+                    <h4 id="kpi-concluido" class="text-4xl font-black text-green-600 tracking-tighter">0</h4>
+                </div>
             </div>
-          </div>
-          <div class="task-obs">"${p.observacao || 'Sem observações adicionais.'}"</div>
+
+            <!-- GRID DE DADOS -->
+            <div id="main-content" class="col-span-12 lg:col-span-9">
+                <div id="aba-lista" class="space-y-4"></div>
+                <div id="aba-dashboard" class="hidden bi-card p-6 md:p-10 min-h-[500px] flex flex-col md:flex-row justify-around items-end gap-10">
+                    <div id="chart-container" class="w-full flex flex-col md:flex-row justify-around items-end gap-10 h-full"></div>
+                </div>
+            </div>
         </div>
-        <div class="task-actions">
-          <select class="status-select" onchange="updateStatus('${p.id}', this.value)">
-            <option value="Não iniciado" ${p.status==='Não iniciado'?'selected':''}>PENDENTE</option>
-            <option value="Em andamento" ${p.status==='Em andamento'?'selected':''}>EM CURSO</option>
-            <option value="Bloqueado" ${p.status==='Bloqueado'?'selected':''}>INTERROMPIDA</option>
-            <option value="Concluído" ${p.status==='Concluído'?'selected':''}>PRONTA</option>
-          </select>
-          <button class="btn-edit" onclick="openEdit('${p.id}')">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-        </div>
-      </div>`;
-    });
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
+    </div>
 
-function renderDashboard(container) {
-  const stats = {
-    naoIniciado: planos.filter(p => p.status === 'Não iniciado').length,
-    andamento: planos.filter(p => p.status === 'Em andamento').length,
-    concluido: planos.filter(p => p.status === 'Concluído').length,
-    bloqueado: planos.filter(p => p.status === 'Bloqueado').length
-  };
-  const financOk = planos.filter(p => p.status_requisicao && p.status_requisicao !== '').length;
-  const capacidade = planos.length ? Math.round((stats.andamento / planos.length)*100) : 0;
-  const entregasTotal = planos.length ? Math.round((stats.concluido / planos.length)*100) : 0;
+    <script>
+        // CONFIGURAÇÃO FIREBASE (Atualizado conforme provisionamento)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFka2_7e9ktqZ3omV8lHBBuzd1Wd88emA",
+            authDomain: "executepro-ff108.firebaseapp.com",
+            projectId: "executepro-ff108",
+            storageBucket: "executepro-ff108.appspot.com",
+            messagingSenderId: "862620727559",
+            appId: "1:862620727559:web:4515840f5eea40c64f6da2"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-  container.innerHTML = `
-    <div class="dashboard-grid">
-      <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-card-title">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>
-            EFICIÊNCIA POR STATUS
-          </div>
-          <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-title">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 7.07 17.07"/></svg>
-            VOLUME POR ÁREA / SETOR
-          </div>
-          <div class="chart-wrapper"><canvas id="pieChart"></canvas></div>
-        </div>
-      </div>
-      <div class="bi-cards">
-        <div class="bi-card blue">
-          <div class="bi-card-label">STATUS FINANCEIRO OK</div>
-          <div class="bi-card-val"><span>${financOk}</span><span class="bi-unit">PROJETOS</span></div>
-        </div>
-        <div class="bi-card yellow">
-          <div class="bi-card-label">CAPACIDADE ATUAL</div>
-          <div class="bi-card-val"><span>${capacidade}%</span><span class="bi-unit">EM CURSO</span></div>
-        </div>
-        <div class="bi-card green">
-          <div class="bi-card-label">ENTREGAS TOTAIS</div>
-          <div class="bi-card-val"><span>${entregasTotal}%</span><span class="bi-unit">FINALIZADO</span></div>
-        </div>
-      </div>
-    </div>`;
+        let dadosGerais = [];
+        let abaAtual = 'lista';
+        let gestorAutenticado = false;
 
-  // Bar Chart
-  const barCtx = document.getElementById('barChart').getContext('2d');
-  if (barChart) barChart.destroy();
-  barChart = new Chart(barCtx, {
-    type: 'bar',
-    data: {
-      labels: ['PENDENTES','EM CURSO','PRONTAS','INTERROMPIDAS'],
-      datasets: [{
-        data: [stats.naoIniciado, stats.andamento, stats.concluido, stats.bloqueado],
-        backgroundColor: ['#2563eb','#f59e0b','#16a34a','#dc2626'],
-        borderRadius: 10,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { titleFont: { weight: 'bold', size: 12 }, bodyFont: { weight: 'bold' } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 } } },
-        y: { grid: { color: '#f1f5f9' }, ticks: { font: { weight: 'bold', size: 11 } } }
-      }
-    }
-  });
+        function toggleForm() { document.getElementById('drawer-form').classList.toggle('translate-x-full'); }
+        function fecharModal() { document.getElementById('modal-edit').classList.add('hidden'); }
 
-  // Pie Chart
-  const pieData = AREAS.map(a => ({ name: a, value: planos.filter(p => p.area === a).length })).filter(d => d.value > 0);
-  const pieColors = ['#2563eb','#16a34a','#f59e0b','#dc2626','#8b5cf6','#ec4899','#f97316','#06b6d4','#475569','#10b981','#a16207','#9ca3af'];
-  const pieCtx = document.getElementById('pieChart').getContext('2d');
-  if (pieChart) pieChart.destroy();
-  pieChart = new Chart(pieCtx, {
-    type: 'doughnut',
-    data: {
-      labels: pieData.map(d => d.name),
-      datasets: [{ data: pieData.map(d => d.value), backgroundColor: pieColors.slice(0, pieData.length), hoverOffset: 8 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 11 }, boxWidth: 14, padding: 12 } },
-        tooltip: { titleFont: { weight: 'bold' }, bodyFont: { weight: 'bold' } }
-      }
-    }
-  });
-}
+        function mudarAba(aba) {
+            abaAtual = aba;
+            document.getElementById('aba-lista').classList.toggle('hidden', aba === 'dashboard');
+            document.getElementById('aba-dashboard').classList.toggle('hidden', aba !== 'dashboard');
+            document.getElementById('sidebar-kpi').classList.toggle('hidden', aba === 'dashboard');
+            
+            // UI Updates
+            const tabs = ['ativos', 'concluidos', 'dash'];
+            tabs.forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                el.className = 'pb-1 transition ' + (t === (aba === 'lista' ? 'ativos' : (aba === 'concluidos' ? 'concluidos' : 'dash')) ? 'aba-ativa' : 'text-slate-400');
+            });
 
-function updateStatus(id, status) {
-  planos = planos.map(p => p.id === id ? {...p, status} : p);
-  save();
-  renderAll();
-}
+            renderLista();
+            if(aba === 'dashboard') renderDashboard();
+        }
 
-function openDrawer() {
-  document.getElementById('overlay').classList.add('open');
-  document.getElementById('drawer').classList.add('open');
-}
+        function verificarSenha() {
+            if (gestorAutenticado) { gestorAutenticado = false; }
+            else { if (prompt("SENHA GESTOR:") === "1570") gestorAutenticado = true; else alert("ERRO!"); }
+            atualizarUI();
+        }
 
-function closeDrawer() {
-  document.getElementById('overlay').classList.remove('open');
-  document.getElementById('drawer').classList.remove('open');
-}
+        function atualizarUI() {
+            const btn = document.getElementById('btn-lock');
+            btn.innerText = gestorAutenticado ? "🔓 GESTOR" : "🔒 ACESSO";
+            btn.className = gestorAutenticado ? "bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg" : "bg-slate-100 text-red-600 px-4 py-2 rounded-lg shadow-sm";
+            renderLista(); 
+        }
 
-function createTask() {
-  const titulo = document.getElementById('fTitulo').value.trim();
-  const responsavel = document.getElementById('fResp').value.trim();
-  if (!titulo || !responsavel) { alert('Preencha o título e o responsável.'); return; }
-  const task = {
-    id: Math.random().toString(36).substr(2,9),
-    titulo,
-    responsavel,
-    area: document.getElementById('fArea').value,
-    data_inicio: document.getElementById('fInicio').value,
-    data_conclusao: document.getElementById('fFim').value,
-    status_requisicao: document.getElementById('fReqStatus').value,
-    observacao: document.getElementById('fObs').value,
-    status: 'Não iniciado',
-    createdAt: Date.now()
-  };
-  planos = [task, ...planos];
-  save();
-  closeDrawer();
-  // Reset form
-  document.getElementById('fTitulo').value = '';
-  document.getElementById('fResp').value = '';
-  document.getElementById('fObs').value = '';
-  document.getElementById('fReqStatus').value = '';
-  renderAll();
-}
+        async function deletarNoModal() {
+            if (confirm("EXCLUIR DEFINITIVAMENTE?")) { await db.collection("planos").doc(document.getElementById('edit-id').value).delete(); fecharModal(); }
+        }
 
-function openEdit(id) {
-  const p = planos.find(x => x.id === id);
-  if (!p) return;
-  editingId = id;
-  document.getElementById('eTitulo').value = p.titulo;
-  document.getElementById('eResp').value = p.responsavel;
-  document.getElementById('eArea').value = p.area;
-  document.getElementById('eReqStatus').value = p.status_requisicao || '';
-  document.getElementById('eObs').value = p.observacao || '';
-  document.getElementById('btnDelete').style.display = gestorAutenticado ? 'block' : 'none';
-  document.getElementById('overlayModal').classList.add('open');
-  document.getElementById('modalWrap').classList.add('open');
-}
+        // Snapshots em Tempo Real
+        db.collection("responsaveis").onSnapshot(snap => {
+            const sp = document.getElementById('responsavel');
+            const se = document.getElementById('edit-responsavel');
+            const fl = document.getElementById('filtro-pessoa');
+            const nomes = [];
+            snap.forEach(doc => nomes.push(doc.data().nome));
+            
+            // Seed se vazio
+            if(nomes.length === 0) {
+                ['CARLOS ALBERTO', 'MARIA HELENA', 'ROBERTO SILVA'].forEach(n => db.collection("responsaveis").add({nome: n}));
+                return;
+            }
 
-function closeModal() {
-  editingId = null;
-  document.getElementById('overlayModal').classList.remove('open');
-  document.getElementById('modalWrap').classList.remove('open');
-}
+            sp.innerHTML = '<option value="" disabled selected>ESCOLHER RESPONSÁVEL...</option>';
+            se.innerHTML = '<option value="" disabled selected>ESCOLHER...</option>';
+            fl.innerHTML = '<option value="TODOS">TODOS OS NOMES</option>';
+            
+            nomes.sort().forEach(n => {
+                const opt = `<option value="${n}">${n}</option>`;
+                sp.innerHTML += opt;
+                se.innerHTML += opt;
+                fl.innerHTML += opt;
+            });
+        });
 
-function saveEdit() {
-  if (!editingId) return;
-  planos = planos.map(p => p.id === editingId ? {
-    ...p,
-    titulo: document.getElementById('eTitulo').value,
-    responsavel: document.getElementById('eResp').value,
-    area: document.getElementById('eArea').value,
-    status_requisicao: document.getElementById('eReqStatus').value,
-    observacao: document.getElementById('eObs').value
-  } : p);
-  save();
-  closeModal();
-  renderAll();
-}
+        db.collection("planos").orderBy('timestamp', 'desc').onSnapshot(snap => {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            dadosGerais = [];
+            snap.forEach(doc => dadosGerais.push({id: doc.id, ...doc.data()}));
+            renderLista();
+            updateKPIs();
+        });
 
-function deleteTask() {
-  if (!gestorAutenticado) { alert('Apenas gestores podem excluir.'); return; }
-  if (!confirm('Deseja excluir esta ação?')) return;
-  planos = planos.filter(p => p.id !== editingId);
-  save();
-  closeModal();
-  renderAll();
-}
-</script>
+        function updateKPIs() {
+            const ativos = dadosGerais.filter(p => p.status !== 'Concluído');
+            const concluido = dadosGerais.filter(p => p.status === 'Concluído');
+            const atraso = ativos.filter(p => moment(p.data_conclusao).isBefore(moment(), 'day'));
+
+            document.getElementById('kpi-pendente').innerText = ativos.length;
+            document.getElementById('kpi-atraso').innerText = atraso.length;
+            document.getElementById('kpi-concluido').innerText = concluido.length;
+        }
+
+        function renderLista() {
+            const lista = document.getElementById('aba-lista');
+            if (abaAtual === 'dashboard') return;
+            
+            const filtroPessoa = document.getElementById('filtro-pessoa').value;
+            const filtroArea = document.getElementById('filtro-area').value;
+            const filtroReq = document.getElementById('filtro-requisicao').value;
+            
+            lista.innerHTML = '';
+            
+            let filtrados = dadosGerais.filter(p => (abaAtual === 'concluidos') ? p.status === 'Concluído' : p.status !== 'Concluído');
+            if (filtroPessoa !== "TODOS") filtrados = filtrados.filter(p => p.responsavel === filtroPessoa);
+            if (filtroArea !== "TODOS") filtrados = filtrados.filter(p => p.area === filtroArea);
+            if (filtroReq !== "TODOS") filtrados = filtrados.filter(p => p.status_requisicao === filtroReq);
+            
+            filtrados.forEach(p => {
+                const hoje = moment().startOf('day');
+                const prazo = moment(p.data_conclusao).startOf('day');
+                const diff = prazo.diff(hoje, 'days');
+                
+                let corBar = "border-blue-600";
+                let statusLabel = p.area || 'GERAL';
+                let bgCard = "bg-white";
+
+                if (p.status === 'Concluído') {
+                    corBar = "border-green-600";
+                    bgCard = "bg-green-50/10";
+                } else if (diff < 0) {
+                    corBar = "border-red-600 critical-glow";
+                    statusLabel = `URGENTE: ${p.area}`;
+                    bgCard = "bg-red-50/5";
+                } else if (p.status === 'Em andamento') {
+                    corBar = "border-yellow-400";
+                }
+
+                lista.innerHTML += `
+                    <div class="${bgCard} border-l-[20px] ${corBar} p-5 rounded-xl shadow-sm flex flex-col md:flex-row gap-4 items-center border border-slate-200">
+                        <div class="flex-grow w-full">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="${diff < 0 && p.status !== 'Concluído' ? 'bg-red-100 text-red-700 italic' : 'bg-blue-100 text-blue-700'} text-[9px] px-2 py-0.5 rounded font-black uppercase">
+                                    ${statusLabel}
+                                </span>
+                                <span class="text-slate-400 text-[9px] font-black uppercase">PRAZO: ${moment(p.data_conclusao).format('DD/MM/YYYY')}</span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-800 uppercase mb-3">${p.titulo}</h3>
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="h-2 w-2 rounded-full bg-slate-300"></div>
+                                <span class="text-[9px] font-black text-slate-500">${p.responsavel}</span>
+                            </div>
+                            <textarea onblur="mudarObs('${p.id}', this.value)" class="w-full p-3 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black text-slate-600 outline-none focus:bg-white transition" placeholder="NOTAS E PENDÊNCIAS...">${p.observacao || ''}</textarea>
+                        </div>
+                        <div class="flex flex-col gap-3 shrink-0 w-full md:w-auto">
+                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[10px] font-black p-3 border border-slate-200 rounded-lg uppercase bg-white">
+                                <option value="Não iniciado" ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
+                                <option value="Em andamento" ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
+                                <option value="Concluído" ${p.status==='Concluído'?'selected':''}>Concluído</option>
+                            </select>
+                            <div class="flex justify-between items-center gap-4">
+                                <span class="text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded">
+                                    ${p.status_requisicao || 'S/ DOCUMENTO'}
+                                </span>
+                                ${gestorAutenticado ? `<button onclick="abrirEdicao('${p.id}')" class="text-blue-600 text-sm hover:scale-110 transition font-black">✏️</button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function mudarStatus(id, s) { await db.collection("planos").doc(id).update({ status: s }); }
+        async function mudarObs(id, t) { await db.collection("planos").doc(id).update({ observacao: t.toUpperCase() }); }
+        
+        function renderDashboard() { 
+            const t = dadosGerais.length; 
+            const c = document.getElementById('chart-container'); 
+            c.innerHTML = ''; 
+            const metas = [
+                {key:'Não iniciado',label:'PENDENTE',color:'bg-blue-600'},
+                {key:'Em andamento',label:'CURSO',color:'bg-yellow-400'},
+                {key:'Concluído',label:'PRONTO',color:'bg-green-600'}
+            ];
+            metas.forEach(cfg => { 
+                const q = dadosGerais.filter(p => p.status === cfg.key).length; 
+                const a = t > 0 ? (q / t * 100) : 0; 
+                c.innerHTML += `
+                    <div class="flex flex-col items-center flex-1 h-full justify-end font-black w-full">
+                        <span class="text-5xl mb-2">${q}</span>
+                        <span class="text-[10px] text-slate-400 mb-6 font-black">${Math.round(a)}%</span>
+                        <div class="column-bar w-full max-w-[150px] ${cfg.color} rounded-t-3xl shadow-xl transition-all duration-1000" style="height: ${Math.max(a*3.5, 30)}px"></div>
+                        <span class="mt-8 text-[10px] bg-white border-2 border-slate-100 px-8 py-3 rounded-full font-black uppercase text-center w-full max-w-[140px]">${cfg.label}</span>
+                    </div>`; 
+            }); 
+        }
+
+        function abrirEdicao(id) { 
+            const p = dadosGerais.find(x => x.id === id); 
+            document.getElementById('edit-id').value = id; 
+            document.getElementById('edit-titulo').value = p.titulo; 
+            document.getElementById('edit-responsavel').value = p.responsavel; 
+            document.getElementById('edit-area').value = p.area || 'OUTROS';
+            document.getElementById('edit-requisicao').value = p.status_requisicao || '';
+            document.getElementById('edit-data-inicio').value = p.data_inicio; 
+            document.getElementById('edit-data-fim').value = p.data_conclusao; 
+            document.getElementById('modal-edit').classList.remove('hidden'); 
+        }
+
+        // CRUD Eventos
+        document.getElementById('form-plano').addEventListener('submit', async(e)=>{ 
+            e.preventDefault(); 
+            await db.collection("planos").add({ 
+                titulo: document.getElementById('titulo').value.toUpperCase(), 
+                responsavel: document.getElementById('responsavel').value, 
+                area: document.getElementById('area').value,
+                status_requisicao: document.getElementById('status_requisicao').value,
+                data_inicio: document.getElementById('data_inicio').value, 
+                data_conclusao: document.getElementById('data_conclusao').value, 
+                status: "Não iniciado", observacao: "", timestamp: Date.now() 
+            }); 
+            e.target.reset(); toggleForm(); 
+        });
+
+        document.getElementById('form-edit').addEventListener('submit', async(e)=>{ 
+            e.preventDefault(); 
+            await db.collection("planos").doc(document.getElementById('edit-id').value).update({ 
+                titulo: document.getElementById('edit-titulo').value.toUpperCase(), 
+                responsavel: document.getElementById('edit-responsavel').value, 
+                area: document.getElementById('edit-area').value,
+                status_requisicao: document.getElementById('edit-requisicao').value,
+                data_inicio: document.getElementById('edit-data-inicio').value, 
+                data_conclusao: document.getElementById('edit-data-fim').value 
+            }); 
+            fecharModal(); 
+        });
+    </script>
 </body>
 </html>
