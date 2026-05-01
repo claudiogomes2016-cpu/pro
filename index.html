@@ -42,6 +42,28 @@
         }
 
         .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* FILTER GRID - RESPONSIVO SEM JS */
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: end;
+        }
+        .nova-acao-wrap { grid-column: span 1; }
+
+        @media (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+            .nova-acao-wrap { 
+                grid-column: span 2 !important; 
+            }
+            #filter-bar {
+                padding: 10px 12px !important;
+            }
+        }
+
         /* FILTROS MOBILE - FORÇAR 2x2 */
         @media (max-width: 768px) {
             #filter-bar { padding: 10px 12px !important; }
@@ -244,7 +266,7 @@
     <div id="filter-bar" style="position:fixed;left:0;right:0;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.1);padding:12px 16px;z-index:29;">
         <div class="container mx-auto">
         <div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end" id="filter-grid">
+            <div id="filter-grid" class="filter-grid">
                 <div class="flex flex-col gap-2">
                     <label class="text-xs font-black text-slate-500">ÁREA / SETOR</label>
                     <select id="filtro-area" onchange="renderLista()" class="bg-slate-50 border-2 border-slate-100 p-2 rounded-xl text-sm font-black outline-none cursor-pointer w-full">
@@ -275,7 +297,7 @@
                     <label class="text-xs font-black text-slate-500">RESPONSÁVEL</label>
                     <select id="filtro-pessoa" onchange="renderLista()" class="bg-slate-50 border-2 border-slate-100 p-2 rounded-xl text-sm font-black outline-none cursor-pointer w-full"></select>
                 </div>
-                <div style="grid-column:span 2">
+                <div class="nova-acao-wrap">
                     <button onclick="toggleForm()" style="width:100%;background:#1140FE;color:white;height:46px;border-radius:12px;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(17,64,254,0.3)">+ NOVA AÇÃO</button>
                 </div>
             </div>
