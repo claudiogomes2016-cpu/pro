@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExecutePro BI - v24 Bento Grid</title>
+    <title>Trackio — Gestão de Ações · Ball</title>
     <!-- Tailwind CSS 4 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Bibliotecas Auxiliares -->
@@ -21,9 +21,9 @@
             letter-spacing: -0.0125em; 
         }
 
-        body { background-color: #f1f5f9; color: #0f172a; }
+        body { background-color: #F4F5F7; color: #1A1A1A; }
 
-        .aba-ativa { border-bottom: 3px solid #2563eb; color: #2563eb; }
+        .aba-ativa { border-bottom: 3px solid #1140FE; color: #1140FE; }
         
         .bi-card { 
             background: #fff; 
@@ -46,54 +46,12 @@
 </head>
 <body class="leading-tight">
 
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[100] flex items-center justify-center font-black text-blue-600 text-xl uppercase italic">CARREGANDO SISTEMA...</div>
-
-    <!-- DETECTOR DE CHAVES -->
-    <div id="detector" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:#1e293b;color:white;padding:20px;border-radius:16px;font-family:monospace;font-size:12px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
-      <div style="font-weight:900;margin-bottom:10px;color:#60a5fa">CHAVES LOCALSTORAGE:</div>
-      <div id="detector-keys"></div>
-      <button onclick="exportarChave()" style="margin-top:12px;background:#16a34a;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:900;margin-right:8px">EXPORTAR</button>
-      <button onclick="document.getElementById('detector').style.display='none'" style="margin-top:12px;background:#475569;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:900">FECHAR</button>
-    </div>
-    <script>
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          const keys = Object.keys(localStorage);
-          let html = '';
-          let found = null;
-          keys.forEach(k => {
-            const v = localStorage.getItem(k);
-            let count = '';
-            try { const p = JSON.parse(v); if(Array.isArray(p) && p.length > 0) { count = ' → ' + p.length + ' registros'; if(!found) found = {k, p}; } } catch(e){}
-            html += '<div style="margin:4px 0"><span style="color:#34d399">' + k + '</span><span style="color:#94a3b8">' + count + '</span></div>';
-          });
-          if(keys.length === 0) html = '<div style="color:#f87171">Nenhuma chave encontrada</div>';
-          document.getElementById('detector-keys').innerHTML = html;
-          document.getElementById('detector').style.display = 'block';
-          window._dadosExportar = found;
-        }, 2000);
-      });
-      function exportarChave() {
-        // Tenta todas as variações de chave
-        const tentativas = ['EXECUTEPRO_V24','executepro_v24','planos_v24','PLANOS_V24','planos','tasks'];
-        let dados = null, chave = '';
-        for(const k of tentativas) {
-          const v = localStorage.getItem(k);
-          if(v && v !== 'null') {
-            try { const p = JSON.parse(v); if(Array.isArray(p) && p.length > 0) { dados = p; chave = k; break; } } catch(e){}
-          }
-        }
-        if(!dados) { alert('Nenhum dado encontrado!'); return; }
-        const blob = new Blob([JSON.stringify(dados, null, 2)], {type:'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup_executepro.json'; a.click();
-        alert('✅ ' + dados.length + ' registros exportados!');
-      }
-    </script>
+    <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4" style="background:#1A1A1A"><div style="font-size:32px;font-weight:900;letter-spacing:-1px;color:#fff">TRACK<span style="color:#1140FE">IO</span></div><div style="font-size:11px;font-weight:700;color:#8C8E94;letter-spacing:3px">CARREGANDO SISTEMA...</div></div>
 
     <!-- SIDE DRAWER (NOVO PLANO) -->
     <div id="drawer-form" class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white shadow-2xl z-[90] translate-x-full border-l border-slate-200 p-8 overflow-y-auto drawer">
         <div class="flex justify-between items-center mb-8 border-b pb-4">
-            <h3 class="text-xl text-blue-600 font-black">NOVO PLANO</h3>
+            <h3 style="font-size:18px;font-weight:900;color:#1140FE">NOVO PLANO</h3>
             <button onclick="toggleForm()" class="text-slate-400 text-3xl font-black hover:text-slate-600">✕</button>
         </div>
         <form id="form-plano" class="space-y-6">
@@ -132,7 +90,7 @@
                 <input type="date" id="data_inicio" required class="w-full p-4 border rounded-xl text-xs bg-slate-50 font-black">
                 <input type="date" id="data_conclusao" required class="w-full p-4 border rounded-xl text-xs bg-slate-50 font-black">
             </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 uppercase">GRAVAR NA NUVEM</button>
+            <button type="submit" style="width:100%;background:#1140FE;color:white;padding:18px;border-radius:14px;font-weight:700;font-size:15px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(17,64,254,0.3)">GRAVAR NA NUVEM</button>
         </form>
     </div>
 
@@ -175,7 +133,7 @@
                     <input type="date" id="edit-data-fim" class="w-full p-3 border rounded-lg text-xs font-black">
                 </div>
                 <div class="pt-4 space-y-3">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black">SALVAR MUDANÇAS</button>
+                    <button type="submit" style="width:100%;background:#1140FE;color:white;padding:14px;border-radius:12px;font-weight:700;font-size:14px;border:none;cursor:pointer">SALVAR MUDANÇAS</button>
                     <button type="button" onclick="deletarNoModal()" class="w-full bg-red-50 text-red-600 py-3 rounded-xl font-black text-[10px]">EXCLUIR DEFINITIVAMENTE</button>
                 </div>
             </form>
@@ -183,18 +141,19 @@
     </div>
 
     <!-- NAVEGAÇÃO -->
-    <nav class="bg-white border-b border-slate-200 p-4 sticky top-0 z-40 font-black shadow-sm">
+    <nav style="background:#1A1A1A;border-bottom:3px solid #1140FE;padding:1rem;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(0,0,0,0.4)">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xl">B</div>
-                <span class="text-slate-900 text-lg font-black tracking-tighter">EXECUTE PRO <span class="text-blue-600">v24</span></span>
+                <div style="background:#1140FE;border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="7" cy="17" r="3" stroke="white" stroke-width="2.5"/><path d="M7 14 C7 8 16 8 16 4" stroke="white" stroke-width="2.5" stroke-dasharray="3,2.5" stroke-linecap="round"/><rect x="13" y="2" width="6" height="6" rx="2" fill="white"/><path d="M14.5 5 L16 6.5 L18.5 4" stroke="#1140FE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <span style="color:#fff;font-size:20px;font-weight:900;letter-spacing:-1px">TRACK<span style="color:#1140FE">IO</span></span>
             </div>
             <div class="flex gap-4 md:gap-6 text-[10px] md:text-[11px] items-center">
-                <button onclick="mudarAba('lista')" id="tab-ativos" class="aba-ativa pb-1">ATIVOS</button>
-                <button onclick="mudarAba('concluidos')" id="tab-concluidos" class="pb-1 text-slate-400">CONCLUÍDOS</button>
-                <button onclick="mudarAba('dashboard')" id="tab-dash" class="pb-1 text-slate-400">BI</button>
-                <button onclick="verificarSenha()" id="btn-lock" class="bg-slate-100 px-4 py-2 rounded-lg text-red-600 shadow-sm transition">🔒 ACESSO</button>
-                <button onclick="exportarDados()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-[10px] font-black shadow-sm hover:bg-green-700 transition">⬇️ EXPORTAR</button>
+                <button onclick="mudarAba('lista')" id="tab-ativos" class="aba-ativa pb-1" style="color:#fff;font-size:13px;font-weight:700">ATIVOS</button>
+                <button onclick="mudarAba('concluidos')" id="tab-concluidos" class="pb-1" style="color:#8C8E94;font-size:13px;font-weight:700">CONCLUÍDOS</button>
+                <button onclick="mudarAba('dashboard')" id="tab-dash" class="pb-1" style="color:#8C8E94;font-size:13px;font-weight:700">BI</button>
+                <button onclick="verificarSenha()" id="btn-lock" style="background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700">🔒 ACESSO</button>
+                <button onclick="exportarDados()" style="background:#16a34a;color:white;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700">⬇️ EXPORTAR</button>
+                <button onclick="abrirModalNomes()" style="background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700">👥 EQUIPE</button>
             </div>
         </div>
     </nav>
@@ -234,7 +193,7 @@
                     <select id="filtro-pessoa" onchange="renderLista()" class="bg-slate-50 border-2 border-slate-100 p-3 rounded-xl text-sm font-black outline-none cursor-pointer"></select>
                 </div>
                 <div>
-                    <button onclick="toggleForm()" class="w-full bg-blue-600 text-white h-[46px] rounded-xl font-black shadow-lg hover:bg-blue-700 transition text-sm">+ NOVA AÇÃO</button>
+                    <button onclick="toggleForm()" style="width:100%;background:#1140FE;color:white;height:46px;border-radius:12px;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(17,64,254,0.3)">+ NOVA AÇÃO</button>
                 </div>
             </div>
         </div>
@@ -301,7 +260,7 @@
             const tabs = ['ativos', 'concluidos', 'dash'];
             tabs.forEach(t => {
                 const el = document.getElementById('tab-' + t);
-                el.className = 'pb-1 transition ' + (t === (aba === 'lista' ? 'ativos' : (aba === 'concluidos' ? 'concluidos' : 'dash')) ? 'aba-ativa' : 'text-slate-400');
+                const isAtivo = t === (aba === 'lista' ? 'ativos' : (aba === 'concluidos' ? 'concluidos' : 'dash')); el.className = 'pb-1 transition ' + (isAtivo ? 'aba-ativa' : ''); el.style.color = isAtivo ? '#ffffff' : '#8C8E94'; el.style.fontSize = '13px'; el.style.fontWeight = '700';
             });
             renderLista();
         }
@@ -315,7 +274,7 @@
         function atualizarUI() {
             const btn = document.getElementById('btn-lock');
             btn.innerText = gestorAutenticado ? "🔓 GESTOR" : "🔒 ACESSO";
-            btn.className = gestorAutenticado ? "bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg" : "bg-slate-100 text-red-600 px-4 py-2 rounded-lg shadow-sm";
+            btn.style.cssText = gestorAutenticado ? "background:#16a34a;color:white;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700" : "background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700";
             renderLista(); 
         }
 
@@ -417,26 +376,46 @@
                     <div class="${bgCard} border-l-[20px] ${corBar} p-5 rounded-xl shadow-sm flex flex-col md:flex-row gap-4 items-center border border-slate-200">
                         <div class="flex-grow w-full">
                             <div class="flex justify-between items-start mb-2">
-                                <span class="${diff < 0 && p.status !== 'Concluído' ? 'bg-red-100 text-red-700 italic' : 'bg-blue-100 text-blue-700'} text-[9px] px-2 py-0.5 rounded font-black uppercase">
+                                <span class="${diff < 0 && p.status !== 'Concluído' ? 'bg-red-100 text-red-700 italic' : 'bg-blue-100 text-blue-700'} px-3 py-1 rounded font-black uppercase" style="font-size:12px">
                                     ${statusLabel}
                                 </span>
-                                <span class="text-slate-400 text-[9px] font-black uppercase">PRAZO: ${moment(p.data_conclusao).format('DD/MM/YYYY')}</span>
+                                <span class="text-slate-400 font-black uppercase" style="font-size:12px">PRAZO: ${moment(p.data_conclusao).format('DD/MM/YYYY')}</span>
                             </div>
-                            <h3 class="text-sm font-black text-slate-800 uppercase mb-3">${p.titulo}</h3>
+                            <h3 class="font-black text-slate-800 uppercase mb-3" style="font-size:16px">${p.titulo}</h3>
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="h-2 w-2 rounded-full bg-slate-300"></div>
-                                <span class="text-[9px] font-black text-slate-500">${p.responsavel}</span>
+                                <span class="font-black text-slate-500" style="font-size:13px">${p.responsavel}</span>
                             </div>
-                            <textarea onblur="mudarObs('${p.id}', this.value)" class="w-full p-3 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-black text-slate-600 outline-none focus:bg-white transition" placeholder="NOTAS E PENDÊNCIAS...">${p.observacao || ''}</textarea>
+                            <textarea onblur="mudarObs('${p.id}', this.value)" class="w-full p-3 bg-slate-50 border border-slate-100 rounded-lg font-black text-slate-600 outline-none focus:bg-white transition" style="font-size:13px" placeholder="NOTAS E PENDÊNCIAS...">${p.observacao || ''}</textarea>
                         </div>
+                        ${p.status === 'Concluído' ? `
+                        <div class="flex flex-col gap-2 shrink-0">
+                            <div class="flex gap-2">
+                                <div class="relative group">
+                                    ${(p.fotos && p.fotos[0]) 
+                                        ? `<img src="${p.fotos[0]}" onclick="abrirLightbox('${p.fotos[0]}')" class="w-28 h-28 object-cover rounded-xl border-2 border-green-200 cursor-pointer hover:scale-105 transition shadow-md"/>
+                                           <button onclick="excluirFoto('${p.id}',0)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>`
+                                        : `<div onclick="abrirModalFoto('${p.id}')" class="w-28 h-28 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition text-slate-400"><span class="text-2xl">📷</span><span class="text-[8px] mt-1">ADD FOTO</span></div>`}
+                                </div>
+                                <div class="relative group">
+                                    ${(p.fotos && p.fotos[1])
+                                        ? `<img src="${p.fotos[1]}" onclick="abrirLightbox('${p.fotos[1]}')" class="w-28 h-28 object-cover rounded-xl border-2 border-green-200 cursor-pointer hover:scale-105 transition shadow-md"/>
+                                           <button onclick="excluirFoto('${p.id}',1)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>`
+                                        : (p.fotos && p.fotos[0]) 
+                                            ? `<div onclick="abrirModalFoto('${p.id}')" class="w-28 h-28 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition text-slate-400"><span class="text-2xl">📷</span><span class="text-[8px] mt-1">ADD FOTO</span></div>`
+                                            : ''}
+                                </div>
+                            </div>
+                            <button onclick="abrirModalFoto('${p.id}')" class="text-[8px] text-slate-400 hover:text-blue-600 transition font-black">✏️ EDITAR FOTOS</button>
+                        </div>` : ''}
                         <div class="flex flex-col gap-3 shrink-0 w-full md:w-auto">
-                            <select onchange="mudarStatus('${p.id}', this.value)" class="text-[10px] font-black p-3 border border-slate-200 rounded-lg uppercase bg-white">
+                            <select onchange="mudarStatus('${p.id}', this.value)" class="font-black p-3 border border-slate-200 rounded-lg uppercase bg-white" style="font-size:13px">
                                 <option value="Não iniciado" ${p.status==='Não iniciado'?'selected':''}>Não iniciado</option>
                                 <option value="Em andamento" ${p.status==='Em andamento'?'selected':''}>Em andamento</option>
                                 <option value="Concluído" ${p.status==='Concluído'?'selected':''}>Concluído</option>
                             </select>
                             <div class="flex justify-between items-center gap-4">
-                                <span class="text-[9px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded">
+                                <span class="font-black text-slate-400 bg-slate-50 px-2 py-1 rounded" style="font-size:12px">
                                     ${p.status_requisicao || 'S/ DOCUMENTO'}
                                 </span>
                                 ${gestorAutenticado ? `<button onclick="abrirEdicao('${p.id}')" class="text-blue-600 text-sm hover:scale-110 transition font-black">✏️</button>` : ''}
@@ -446,8 +425,116 @@
             });
         }
 
-        async function mudarStatus(id, s) { await db.collection("planos").doc(id).update({ status: s }); }
+        async function mudarStatus(id, novoStatus) {
+            if (novoStatus === 'Concluído') {
+                const resp = confirm('✅ DESEJA REGISTRAR FOTO DA CONCLUSÃO?');
+                if (resp) {
+                    await db.collection("planos").doc(id).update({ status: novoStatus });
+                    abrirModalFoto(id);
+                    return;
+                }
+            }
+            await db.collection("planos").doc(id).update({ status: novoStatus });
+        }
         async function mudarObs(id, t) { await db.collection("planos").doc(id).update({ observacao: t.toUpperCase() }); }
+
+        function abrirModalFoto(id) {
+            document.getElementById('foto-plano-id').value = id;
+            document.getElementById('foto-preview-1').src = '';
+            document.getElementById('foto-preview-1').classList.add('hidden');
+            document.getElementById('foto-preview-2').src = '';
+            document.getElementById('foto-preview-2').classList.add('hidden');
+            document.getElementById('foto-input-1').value = '';
+            document.getElementById('foto-input-2').value = '';
+            document.getElementById('modal-foto').classList.remove('hidden');
+        }
+
+        function previewFoto(inputEl, previewId) {
+            const file = inputEl.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const max = 800;
+                    let w = img.width, h = img.height;
+                    if (w > max) { h = Math.round(h * max / w); w = max; }
+                    if (h > max) { w = Math.round(w * max / h); h = max; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const b64 = canvas.toDataURL('image/jpeg', 0.75);
+                    const prev = document.getElementById(previewId);
+                    prev.src = b64;
+                    prev.classList.remove('hidden');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function salvarFotos() {
+            const id = document.getElementById('foto-plano-id').value;
+            const p1 = document.getElementById('foto-preview-1').src;
+            const p2 = document.getElementById('foto-preview-2').src;
+            const fotos = [];
+            if (p1 && p1.startsWith('data:')) fotos.push(p1);
+            if (p2 && p2.startsWith('data:')) fotos.push(p2);
+            document.getElementById('btn-salvar-foto').innerText = 'SALVANDO...';
+            await db.collection("planos").doc(id).update({ fotos });
+            document.getElementById('modal-foto').classList.add('hidden');
+            document.getElementById('btn-salvar-foto').innerText = 'SALVAR FOTOS';
+        }
+
+        function abrirLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.remove('hidden');
+        }
+
+        async function excluirFoto(id, idx) {
+            if (!confirm('EXCLUIR ESTA FOTO?')) return;
+            const p = dadosGerais.find(x => x.id === id);
+            const fotos = [...(p.fotos || [])];
+            fotos.splice(idx, 1);
+            await db.collection('planos').doc(id).update({ fotos });
+        }
+
+        function abrirModalNomes() {
+            const lista = document.getElementById('nomes-lista');
+            lista.innerHTML = '';
+            db.collection('responsaveis').get().then(snap => {
+                snap.forEach(doc => {
+                    lista.innerHTML += `<div class="flex gap-2 items-center mb-2">
+                        <input value="${doc.data().nome}" id="nome-${doc.id}" class="flex-1 p-2 border rounded-lg text-sm font-black outline-none" style="border:2px solid #E2E4E9;border-radius:10px;padding:10px;font-size:13px;font-weight:700">
+                        <button onclick="salvarNome('${doc.id}')" style="background:#1140FE;color:white;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">✓</button>
+                        <button onclick="excluirNome('${doc.id}')" style="background:#fef2f2;color:#dc2626;border:2px solid #fecaca;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">✕</button>
+                    </div>`;
+                });
+            });
+            document.getElementById('modal-nomes').classList.remove('hidden');
+        }
+
+        async function salvarNome(id) {
+            const val = document.getElementById('nome-' + id).value.toUpperCase().trim();
+            if (!val) return;
+            await db.collection('responsaveis').doc(id).update({ nome: val });
+            alert('✅ NOME ATUALIZADO!');
+        }
+
+        async function excluirNome(id) {
+            if (confirm('EXCLUIR ESTE RESPONSÁVEL?')) {
+                await db.collection('responsaveis').doc(id).delete();
+                abrirModalNomes();
+            }
+        }
+
+        async function adicionarNome() {
+            const val = document.getElementById('novo-nome').value.toUpperCase().trim();
+            if (!val) return;
+            await db.collection('responsaveis').add({ nome: val });
+            document.getElementById('novo-nome').value = '';
+            abrirModalNomes();
+        }
         
         function renderDashboard() {
             const d = getDadosFiltrados();
@@ -662,5 +749,63 @@
         alert('✅ ' + dadosGerais.length + ' registros exportados com sucesso!');
     }
     </script>
+    <!-- MODAL NOMES -->
+    <div id="modal-nomes" class="hidden fixed inset-0 bg-slate-900/70 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 style="font-size:18px;font-weight:900;color:#1A1A1A">👥 EQUIPE</h3>
+                <button onclick="document.getElementById('modal-nomes').classList.add('hidden')" class="text-slate-400 text-2xl font-black">✕</button>
+            </div>
+            <div id="nomes-lista" class="mb-6"></div>
+            <div class="flex gap-2 pt-4 border-t border-slate-100">
+                <input id="novo-nome" type="text" placeholder="NOVO RESPONSÁVEL..." style="flex:1;padding:10px 14px;border:2px solid #E2E4E9;border-radius:10px;font-size:13px;font-weight:700;outline:none">
+                <button onclick="adicionarNome()" style="background:#1140FE;color:white;border:none;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700">+ ADICIONAR</button>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL FOTO -->
+    <div id="modal-foto" class="hidden fixed inset-0 bg-slate-900/70 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-black text-slate-800">📷 REGISTRAR FOTOS</h3>
+                <button onclick="document.getElementById('modal-foto').classList.add('hidden')" class="text-slate-400 text-2xl font-black hover:text-slate-600">✕</button>
+            </div>
+            <input type="hidden" id="foto-plano-id">
+            <p class="text-xs text-slate-400 font-black mb-6">MÁXIMO 2 FOTOS — CLIQUE PARA SELECIONAR</p>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="foto-input-1" class="cursor-pointer block">
+                        <img id="foto-preview-1" class="hidden w-full h-36 object-cover rounded-xl border-2 border-green-300 mb-2"/>
+                        <div id="foto-placeholder-1" class="w-full h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition">
+                            <span class="text-3xl">📷</span>
+                            <span class="text-[9px] font-black text-slate-400 mt-2">FOTO 1</span>
+                        </div>
+                    </label>
+                    <input type="file" id="foto-input-1" accept="image/*" capture="environment" class="hidden" onchange="previewFoto(this, 'foto-preview-1')">
+                </div>
+                <div>
+                    <label for="foto-input-2" class="cursor-pointer block">
+                        <img id="foto-preview-2" class="hidden w-full h-36 object-cover rounded-xl border-2 border-green-300 mb-2"/>
+                        <div id="foto-placeholder-2" class="w-full h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition">
+                            <span class="text-3xl">📷</span>
+                            <span class="text-[9px] font-black text-slate-400 mt-2">FOTO 2</span>
+                        </div>
+                    </label>
+                    <input type="file" id="foto-input-2" accept="image/*" capture="environment" class="hidden" onchange="previewFoto(this, 'foto-preview-2')">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('modal-foto').classList.add('hidden')" class="flex-1 bg-slate-100 text-slate-600 py-4 rounded-xl font-black text-sm">PULAR</button>
+                <button id="btn-salvar-foto" onclick="salvarFotos()" class="flex-2 flex-grow bg-green-600 text-white py-4 rounded-xl font-black text-sm shadow-lg hover:bg-green-700 transition">SALVAR FOTOS ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div id="lightbox" class="hidden fixed inset-0 bg-black/90 z-[130] flex items-center justify-center p-4" onclick="document.getElementById('lightbox').classList.add('hidden')">
+        <img id="lightbox-img" class="max-w-full max-h-full rounded-2xl shadow-2xl object-contain" style="max-height:90vh"/>
+        <button class="absolute top-6 right-6 text-white text-4xl font-black hover:text-slate-300">✕</button>
+    </div>
+
 </body>
 </html>
