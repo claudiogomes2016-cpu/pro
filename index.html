@@ -42,6 +42,20 @@
         }
 
         .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* FILTROS MOBILE - FORÇAR 2x2 */
+        @media (max-width: 768px) {
+            #filter-bar { padding: 10px 12px !important; }
+            #filter-bar .grid { 
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+            #filter-bar label { font-size: 10px !important; margin-bottom: 3px !important; }
+            #filter-bar select { padding: 8px 10px !important; font-size: 12px !important; }
+            #filter-bar button { height: 40px !important; font-size: 13px !important; }
+            #filter-bar .col-span-2 { grid-column: span 2 !important; }
+        }
+
 
 
         /* Filter bar: sticky desktop only, scroll on mobile */
