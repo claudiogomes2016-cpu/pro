@@ -896,14 +896,30 @@
             const spacer = document.getElementById('spacer');
             if (!nav || !bar || !spacer) return;
             const navH = nav.getBoundingClientRect().height;
-            bar.style.top = navH + 'px';
-            const barH = bar.getBoundingClientRect().height;
-            spacer.style.height = (navH + barH) + 'px';
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                // Mobile: filter bar NOT fixed, just nav is fixed
+                bar.style.position = 'relative';
+                bar.style.top = 'auto';
+                bar.style.left = 'auto';
+                bar.style.right = 'auto';
+                bar.style.zIndex = '10';
+                spacer.style.height = navH + 'px';
+            } else {
+                // Desktop: both nav and filter bar fixed
+                bar.style.position = 'fixed';
+                bar.style.top = navH + 'px';
+                bar.style.left = '0';
+                bar.style.right = '0';
+                bar.style.zIndex = '29';
+                const barH = bar.getBoundingClientRect().height;
+                spacer.style.height = (navH + barH) + 'px';
+            }
         }
         window.addEventListener('DOMContentLoaded', fixLayout);
         window.addEventListener('resize', fixLayout);
-        setTimeout(fixLayout, 500);
-        setTimeout(fixLayout, 2000);
+        setTimeout(fixLayout, 300);
+        setTimeout(fixLayout, 1500);
     </script>
 </body>
 </html>
