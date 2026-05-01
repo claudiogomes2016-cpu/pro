@@ -553,8 +553,16 @@
             document.getElementById('foto-preview-1').classList.add('hidden');
             document.getElementById('foto-preview-2').src = '';
             document.getElementById('foto-preview-2').classList.add('hidden');
-            document.getElementById('foto-input-1').value = '';
-            document.getElementById('foto-input-2').value = '';
+            // Reset todos os inputs reais (galeria + câmera, slot 1 e 2)
+            ['foto-input-1-gal','foto-input-1-cam','foto-input-2-gal','foto-input-2-cam'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            // Reexibe placeholders
+            const ph1 = document.getElementById('foto-placeholder-1');
+            if (ph1) ph1.classList.remove('hidden');
+            const ph2 = document.getElementById('foto-placeholder-2');
+            if (ph2) ph2.classList.remove('hidden');
             document.getElementById('modal-foto').classList.remove('hidden');
         }
 
@@ -937,12 +945,15 @@
                 bar.style.top = 'auto';
                 bar.style.left = 'auto';
                 bar.style.right = 'auto';
-                spacer.style.height = navH + 'px';
+                // No mobile a nav é fixed → empurrar o filter-bar para baixo da nav
+                bar.style.marginTop = navH + 'px';
+                spacer.style.height = '0px';
             } else {
                 bar.style.position = 'fixed';
                 bar.style.top = navH + 'px';
                 bar.style.left = '0';
                 bar.style.right = '0';
+                bar.style.marginTop = '0';
                 const barH = bar.getBoundingClientRect().height;
                 spacer.style.height = (navH + barH) + 'px';
             }
