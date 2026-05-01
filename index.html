@@ -42,6 +42,72 @@
         }
 
         .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 768px) {
+            .container { padding: 12px !important; }
+            
+            /* Nav mobile */
+            nav .container > div { flex-wrap: wrap; gap: 10px; }
+            nav .flex.gap-4 { gap: 8px !important; flex-wrap: wrap; justify-content: flex-end; }
+            
+            /* Filter grid mobile */
+            .grid.grid-cols-1.md\:grid-cols-4 { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+            
+            /* KPI sidebar mobile - horizontal scroll */
+            #sidebar-kpi { 
+                flex-direction: row !important; 
+                overflow-x: auto !important; 
+                gap: 10px !important;
+                padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            #sidebar-kpi::-webkit-scrollbar { display: none; }
+            #sidebar-kpi > div { 
+                min-width: 120px !important; 
+                flex-shrink: 0;
+                padding: 14px !important;
+            }
+            #sidebar-kpi .text-5xl { font-size: 2rem !important; }
+            
+            /* Task cards mobile */
+            .border-l-\[20px\] { 
+                border-left-width: 8px !important; 
+                flex-direction: column !important;
+            }
+            
+            /* Grid 12 cols mobile */
+            .grid.grid-cols-12 { grid-template-columns: 1fr !important; }
+            .col-span-12.lg\:col-span-3 { grid-column: span 1 !important; }
+            .col-span-12.lg\:col-span-9 { grid-column: span 1 !important; }
+            
+            /* Foto slots mobile */
+            .w-28.h-28 { width: 90px !important; height: 90px !important; }
+            
+            /* Drawer full screen mobile */
+            #drawer-form { width: 100% !important; }
+            
+            /* Modal full screen mobile */
+            #modal-edit .bg-white, #modal-foto .bg-white, #modal-nomes .bg-white {
+                margin: 0 !important;
+                max-height: 95vh !important;
+                border-radius: 20px 20px 0 0 !important;
+            }
+            #modal-edit, #modal-foto, #modal-nomes {
+                align-items: flex-end !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Filtros em coluna no mobile pequeno */
+            .grid.grid-cols-1.md\:grid-cols-4 { grid-template-columns: 1fr !important; }
+            nav .flex.gap-4 button, nav .flex.gap-4 a { font-size: 11px !important; padding: 5px 8px !important; }
+        }
+
+        /* Prevent horizontal scroll globally */
+        html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+        * { box-sizing: border-box; }
     </style>
 </head>
 <body class="leading-tight">
@@ -449,7 +515,7 @@
             document.getElementById('modal-foto').classList.remove('hidden');
         }
 
-        function previewFoto(inputEl, previewId) {
+        function previewFoto(inputEl, previewId, placeholderId) {
             const file = inputEl.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -467,6 +533,7 @@
                     const prev = document.getElementById(previewId);
                     prev.src = b64;
                     prev.classList.remove('hidden');
+                    if (placeholderId) document.getElementById(placeholderId).classList.add('hidden');
                 };
                 img.src = e.target.result;
             };
@@ -774,24 +841,30 @@
             <p class="text-xs text-slate-400 font-black mb-6">MÁXIMO 2 FOTOS — CLIQUE PARA SELECIONAR</p>
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                    <label for="foto-input-1" class="cursor-pointer block">
-                        <img id="foto-preview-1" class="hidden w-full h-36 object-cover rounded-xl border-2 border-green-300 mb-2"/>
-                        <div id="foto-placeholder-1" class="w-full h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition">
-                            <span class="text-3xl">📷</span>
-                            <span class="text-[9px] font-black text-slate-400 mt-2">FOTO 1</span>
+                    <img id="foto-preview-1" class="hidden w-full h-36 object-cover rounded-xl border-2 border-green-300 mb-2"/>
+                    <div id="foto-placeholder-1" class="w-full h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center">
+                        <span class="text-3xl mb-2">📷</span>
+                        <span class="text-[10px] font-black text-slate-400 mb-3">FOTO 1</span>
+                        <div class="flex gap-2">
+                            <label for="foto-input-1-gal" style="background:#1140FE;color:white;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700">📁 GALERIA</label>
+                            <label for="foto-input-1-cam" style="background:#1A1A1A;color:white;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700">📸 CÂMERA</label>
                         </div>
-                    </label>
-                    <input type="file" id="foto-input-1" accept="image/*" capture="environment" class="hidden" onchange="previewFoto(this, 'foto-preview-1')">
+                    </div>
+                    <input type="file" id="foto-input-1-gal" accept="image/*" class="hidden" onchange="previewFoto(this, 'foto-preview-1', 'foto-placeholder-1')">
+                    <input type="file" id="foto-input-1-cam" accept="image/*" capture="environment" class="hidden" onchange="previewFoto(this, 'foto-preview-1', 'foto-placeholder-1')">
                 </div>
                 <div>
-                    <label for="foto-input-2" class="cursor-pointer block">
-                        <img id="foto-preview-2" class="hidden w-full h-36 object-cover rounded-xl border-2 border-green-300 mb-2"/>
-                        <div id="foto-placeholder-2" class="w-full h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 transition">
-                            <span class="text-3xl">📷</span>
-                            <span class="text-[9px] font-black text-slate-400 mt-2">FOTO 2</span>
+                    <img id="foto-preview-2" class="hidden w-full h-36 object-cover rounded-xl border-2 border-green-300 mb-2"/>
+                    <div id="foto-placeholder-2" class="w-full h-36 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center">
+                        <span class="text-3xl mb-2">📷</span>
+                        <span class="text-[10px] font-black text-slate-400 mb-3">FOTO 2</span>
+                        <div class="flex gap-2">
+                            <label for="foto-input-2-gal" style="background:#1140FE;color:white;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700">📁 GALERIA</label>
+                            <label for="foto-input-2-cam" style="background:#1A1A1A;color:white;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:10px;font-weight:700">📸 CÂMERA</label>
                         </div>
-                    </label>
-                    <input type="file" id="foto-input-2" accept="image/*" capture="environment" class="hidden" onchange="previewFoto(this, 'foto-preview-2')">
+                    </div>
+                    <input type="file" id="foto-input-2-gal" accept="image/*" class="hidden" onchange="previewFoto(this, 'foto-preview-2', 'foto-placeholder-2')">
+                    <input type="file" id="foto-input-2-cam" accept="image/*" capture="environment" class="hidden" onchange="previewFoto(this, 'foto-preview-2', 'foto-placeholder-2')">
                 </div>
             </div>
             <div class="flex gap-3">
