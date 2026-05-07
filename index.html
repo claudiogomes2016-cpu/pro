@@ -42,7 +42,6 @@
         }
 
         .drawer { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        /* FILTER GRID - RESPONSIVO SEM JS */
         .filter-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -64,7 +63,6 @@
             }
         }
 
-        /* FILTROS MOBILE - FORÇAR 2x2 */
         @media (max-width: 768px) {
             #filter-bar { padding: 10px 12px !important; }
             #filter-bar .grid { 
@@ -78,22 +76,12 @@
             #filter-bar .col-span-2 { grid-column: span 2 !important; }
         }
 
-
-
-        /* Filter bar: sticky desktop only, scroll on mobile */
         @media (max-width: 768px) { #filter-bar { position: relative !important; top: auto !important; box-shadow: none !important; } }
-        /* MOBILE RESPONSIVE */
         @media (max-width: 768px) {
             .container { padding: 12px !important; }
-            
-            /* Nav mobile */
             nav .container > div { flex-wrap: wrap; gap: 10px; }
             nav .flex.gap-4 { gap: 8px !important; flex-wrap: wrap; justify-content: flex-end; }
-            
-            /* Filter grid mobile */
             .grid.grid-cols-1.md\:grid-cols-4 { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-            
-            /* KPI sidebar mobile - horizontal scroll */
             #sidebar-kpi { 
                 flex-direction: row !important; 
                 overflow-x: auto !important; 
@@ -109,25 +97,15 @@
                 padding: 14px !important;
             }
             #sidebar-kpi .text-5xl { font-size: 2rem !important; }
-            
-            /* Task cards mobile */
             .border-l-\[20px\] { 
                 border-left-width: 8px !important; 
                 flex-direction: column !important;
             }
-            
-            /* Grid 12 cols mobile */
             .grid.grid-cols-12 { grid-template-columns: 1fr !important; }
             .col-span-12.lg\:col-span-3 { grid-column: span 1 !important; }
             .col-span-12.lg\:col-span-9 { grid-column: span 1 !important; }
-            
-            /* Foto slots mobile */
             .w-28.h-28 { width: 90px !important; height: 90px !important; }
-            
-            /* Drawer full screen mobile */
             #drawer-form { width: 100% !important; }
-            
-            /* Modal full screen mobile */
             #modal-edit .bg-white, #modal-foto .bg-white, #modal-nomes .bg-white {
                 margin: 0 !important;
                 max-height: 95vh !important;
@@ -139,12 +117,10 @@
         }
         
         @media (max-width: 480px) {
-            /* Filtros em coluna no mobile pequeno */
             .grid.grid-cols-1.md\:grid-cols-4 { grid-template-columns: 1fr !important; }
             nav .flex.gap-4 button, nav .flex.gap-4 a { font-size: 11px !important; padding: 5px 8px !important; }
         }
 
-        /* Prevent horizontal scroll globally */
         html, body { overflow-x: hidden !important; max-width: 100vw !important; }
         * { box-sizing: border-box; }
     </style>
@@ -262,7 +238,7 @@
         </div>
     </nav>
 
-    <!-- FILTROS STICKY - FORA DO CONTAINER -->
+    <!-- FILTROS STICKY -->
     <div id="filter-bar" style="position:fixed;left:0;right:0;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.1);padding:12px 16px;z-index:29;">
         <div class="container mx-auto">
         <div>
@@ -303,7 +279,7 @@
             </div>
         </div>
         </div>
-    </div><!-- end filter-bar -->
+    </div>
     <div id="spacer" style="height:0px"></div>
 
     <div class="container mx-auto p-4 lg:p-10">
@@ -341,7 +317,6 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE (Atualizado conforme provisionamento)
         const firebaseConfig = {
             apiKey: "AIzaSyCFka2_7e9ktqZ3omV8lHBBuzd1Wd88emA",
             authDomain: "executepro-ff108.firebaseapp.com",
@@ -369,7 +344,11 @@
             const tabs = ['ativos', 'concluidos', 'dash'];
             tabs.forEach(t => {
                 const el = document.getElementById('tab-' + t);
-                const isAtivo = t === (aba === 'lista' ? 'ativos' : (aba === 'concluidos' ? 'concluidos' : 'dash')); el.className = 'pb-1 transition ' + (isAtivo ? 'aba-ativa' : ''); el.style.color = isAtivo ? '#ffffff' : '#8C8E94'; el.style.fontSize = '13px'; el.style.fontWeight = '700';
+                const isAtivo = t === (aba === 'lista' ? 'ativos' : (aba === 'concluidos' ? 'concluidos' : 'dash'));
+                el.className = 'pb-1 transition ' + (isAtivo ? 'aba-ativa' : '');
+                el.style.color = isAtivo ? '#ffffff' : '#8C8E94';
+                el.style.fontSize = '13px';
+                el.style.fontWeight = '700';
             });
             renderLista();
         }
@@ -383,12 +362,17 @@
         function atualizarUI() {
             const btn = document.getElementById('btn-lock');
             btn.innerText = gestorAutenticado ? "🔓 GESTOR" : "🔒 ACESSO";
-            btn.style.cssText = gestorAutenticado ? "background:#16a34a;color:white;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700" : "background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700";
+            btn.style.cssText = gestorAutenticado
+                ? "background:#16a34a;color:white;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700"
+                : "background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700";
             renderLista(); 
         }
 
         async function deletarNoModal() {
-            if (confirm("EXCLUIR DEFINITIVAMENTE?")) { await db.collection("planos").doc(document.getElementById('edit-id').value).delete(); fecharModal(); }
+            if (confirm("EXCLUIR DEFINITIVAMENTE?")) {
+                await db.collection("planos").doc(document.getElementById('edit-id').value).delete();
+                fecharModal();
+            }
         }
 
         // Snapshots em Tempo Real
@@ -399,8 +383,7 @@
             const nomes = [];
             snap.forEach(doc => nomes.push(doc.data().nome));
             
-            // Seed se vazio
-            if(nomes.length === 0) {
+            if (nomes.length === 0) {
                 ['CARLOS ALBERTO', 'MARIA HELENA', 'ROBERTO SILVA'].forEach(n => db.collection("responsaveis").add({nome: n}));
                 return;
             }
@@ -534,17 +517,15 @@
             });
         }
 
+        // ✅ BUG CORRIGIDO: salva o status PRIMEIRO, depois oferece foto
         async function mudarStatus(id, novoStatus) {
+            await db.collection("planos").doc(id).update({ status: novoStatus });
             if (novoStatus === 'Concluído') {
                 const resp = confirm('✅ DESEJA REGISTRAR FOTO DA CONCLUSÃO?');
-                if (resp) {
-                    await db.collection("planos").doc(id).update({ status: novoStatus });
-                    abrirModalFoto(id);
-                    return;
-                }
+                if (resp) abrirModalFoto(id);
             }
-            await db.collection("planos").doc(id).update({ status: novoStatus });
         }
+
         async function mudarObs(id, t) { await db.collection("planos").doc(id).update({ observacao: t.toUpperCase() }); }
 
         function abrirModalFoto(id) {
@@ -553,12 +534,10 @@
             document.getElementById('foto-preview-1').classList.add('hidden');
             document.getElementById('foto-preview-2').src = '';
             document.getElementById('foto-preview-2').classList.add('hidden');
-            // Reset todos os inputs reais (galeria + câmera, slot 1 e 2)
             ['foto-input-1-gal','foto-input-1-cam','foto-input-2-gal','foto-input-2-cam'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-            // Reexibe placeholders
             const ph1 = document.getElementById('foto-placeholder-1');
             if (ph1) ph1.classList.remove('hidden');
             const ph2 = document.getElementById('foto-placeholder-2');
@@ -669,12 +648,10 @@
             const COLORS = ['#2563eb','#16a34a','#f59e0b','#dc2626','#8b5cf6','#ec4899','#f97316','#06b6d4','#475569','#10b981','#a16207','#64748b'];
             const areaData = AREAS.map((a,i) => ({ name: a, total: d.filter(p=>p.area===a).length, conc: d.filter(p=>p.area===a&&p.status==='Concluído').length, color: COLORS[i] })).filter(x=>x.total>0);
 
-            // Vencendo nos próximos 7 dias
             const vencendo = d.filter(p => p.status !== 'Concluído' && moment(p.data_conclusao).diff(moment(),'days') >= 0 && moment(p.data_conclusao).diff(moment(),'days') <= 7).length;
 
             const dash = document.getElementById('aba-dashboard');
 
-            // Barra de progresso geral
             const progressBar = `
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <div class="flex justify-between items-center mb-4">
@@ -689,7 +666,6 @@
                 </div>
             </div>`;
 
-            // KPI cards BI
             const kpiCards = `
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white rounded-2xl border-t-4 border-blue-600 p-5 shadow-sm">
@@ -714,7 +690,6 @@
                 </div>
             </div>`;
 
-            // Gráfico barras por status (SVG)
             const maxBar = Math.max(naoIniciado, andamento, concluido, atraso, 1);
             const barH = 160;
             const bars = [
@@ -744,7 +719,6 @@
                 </svg>
             </div>`;
 
-            // Gráfico pizza por área (SVG donut)
             const pieSize = 160; const cx = pieSize/2; const cy = pieSize/2; const r = 55; const ri = 30;
             let startAngle = -Math.PI/2;
             const areaTotal = areaData.reduce((s,a)=>s+a.total,0)||1;
@@ -775,7 +749,6 @@
                 </div>
             </div>`;
 
-            // Barras horizontais por área (conclusão)
             const areaBarras = areaData.map(a => {
                 const pct = a.total > 0 ? Math.round((a.conc/a.total)*100) : 0;
                 return `<div class="mb-3">
@@ -794,7 +767,6 @@
                 ${areaBarras || '<p class="text-slate-400 text-xs">Sem dados</p>'}
             </div>`;
 
-            // Documento financeiro
             const docChart = `
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                 <p class="text-sm font-black text-slate-700 mb-4">STATUS FINANCEIRO</p>
@@ -829,7 +801,6 @@
             document.getElementById('modal-edit').classList.remove('hidden'); 
         }
 
-        // CRUD Eventos
         document.getElementById('form-plano').addEventListener('submit', async(e)=>{ 
             e.preventDefault(); 
             await db.collection("planos").add({ 
@@ -857,16 +828,17 @@
             fecharModal(); 
         });
 
-    function exportarDados() {
-        if (!dadosGerais || dadosGerais.length === 0) { alert('Nenhum dado carregado ainda! Aguarde os dados aparecerem na tela.'); return; }
-        const blob = new Blob([JSON.stringify(dadosGerais, null, 2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'backup_executepro_' + new Date().toISOString().slice(0,10) + '.json';
-        a.click();
-        alert('✅ ' + dadosGerais.length + ' registros exportados com sucesso!');
-    }
+        function exportarDados() {
+            if (!dadosGerais || dadosGerais.length === 0) { alert('Nenhum dado carregado ainda! Aguarde os dados aparecerem na tela.'); return; }
+            const blob = new Blob([JSON.stringify(dadosGerais, null, 2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'backup_executepro_' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+            alert('✅ ' + dadosGerais.length + ' registros exportados com sucesso!');
+        }
     </script>
+
     <!-- MODAL NOMES -->
     <div id="modal-nomes" class="hidden fixed inset-0 bg-slate-900/70 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200 max-h-[90vh] overflow-y-auto">
@@ -881,6 +853,7 @@
             </div>
         </div>
     </div>
+
     <!-- MODAL FOTO -->
     <div id="modal-foto" class="hidden fixed inset-0 bg-slate-900/70 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200">
@@ -931,8 +904,6 @@
         <button class="absolute top-6 right-6 text-white text-4xl font-black hover:text-slate-300">✕</button>
     </div>
 
-
-
     <script>
         function fixLayout() {
             const nav = document.getElementById('main-nav');
@@ -945,7 +916,6 @@
                 bar.style.top = 'auto';
                 bar.style.left = 'auto';
                 bar.style.right = 'auto';
-                // No mobile a nav é fixed → empurrar o filter-bar para baixo da nav
                 bar.style.marginTop = navH + 'px';
                 spacer.style.height = '0px';
             } else {
